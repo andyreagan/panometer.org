@@ -1,0 +1,33 @@
+{% extends "panometer/base.html" %}
+{% load staticfiles %}
+{% block headercss %}
+<link href="{% static "panometer/css/bootstrap.min.css" %}" rel="stylesheet">
+<link href="{% static "panometer/css/site.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block nav %}
+{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    <header id="top" class="header">
+        <div class="text-vertical-center">
+            <h1>Panometer.org</h1>
+            <h3>Measuring everything</h3>
+            <br>
+            <a href="#about" class="btn btn-dark btn-lg">Coming soon</a>
+        </div>
+    </header>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+{% block bottomjs %}
+
+    <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}"></script>
+    <script src="{% static "panometer/js/bootstrap.min.js" %}"></script>
+
+{% endblock %}
+
+
