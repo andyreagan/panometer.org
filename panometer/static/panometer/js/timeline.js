@@ -519,7 +519,7 @@
 
     var minDate,maxDate;
 
-    d3.csv("http://hedonometer.org/data/word-vectors/"+sumfile+".csv", function(data) {
+    d3.csv("http://panometer.org/data/word-vectors/"+sumfile+".csv", function(data) {
 	minDate = getDate(data[0]);
 	maxDate = getDate(data[data.length - 1]);
 	var parse = d3.time.format("%Y-%m-%d").parse;
@@ -644,8 +644,8 @@
 
 	var format = d3.time.format("%m-%d");
 
- // 	// http://hedonometer.org/api/v1/events/?format=json
- // 	d3.json('http://hedonometer.org/api/v1/events/?format=json',function(json) { 
+ // 	// http://panometer.org/api/v1/events/?format=json
+ // 	d3.json('http://panometer.org/api/v1/events/?format=json',function(json) { 
  // 	    bigdays = json.objects;
  // 	    bigdays.map( function(d) { d.date = dformat.parse(d.date);
  // 				       d.x = parseFloat(d.x);
@@ -973,9 +973,9 @@
 	var modalheight = 495;
 
 	// now trying to load in data from zoo
-	d3.text("http://hedonometer.org/data/word-vectors/"+cformat(popdate)+"-sum.csv",function(tmp) {
+	d3.text("http://panometer.org/data/word-vectors/"+cformat(popdate)+"-sum.csv",function(tmp) {
 	    compFvec = tmp.split('\n').slice(0,10222);
-	    d3.text("http://hedonometer.org/data/word-vectors/"+cformat(d3.time.day.offset(popdate,0))+"-prev7.csv",function(tmp2) {
+	    d3.text("http://panometer.org/data/word-vectors/"+cformat(d3.time.day.offset(popdate,0))+"-prev7.csv",function(tmp2) {
 		refFvec = tmp2.split('\n').slice(0,10222);
 
 		// console.log("see if all four vectors are here:");
@@ -1125,7 +1125,7 @@
 	    }
 	}
 
-	d3.csv("http://hedonometer.org/data/shifts/" + cformat(popdate) + "-shift.csv", function(csv) {
+	d3.csv("http://panometer.org/data/shifts/" + cformat(popdate) + "-shift.csv", function(csv) {
 	    var names = csv.map(function(d) { return d.word; });
 	    var sizes = csv.map(function(d) { return d.mag; });
 	    var types = csv.map(function(d) { return d.type; });
@@ -1135,7 +1135,7 @@
 	    //var x = d3.scale.linear().domain([-x0, x0]).range([0, 400]);
 	    //var y = d3.scale.linear().domain(d3.range(sizes.length)).range([5, 7]);
 
-	    d3.csv("http://hedonometer.org/data/shifts/" + cformat(popdate) + "-metashift.csv", function(csv) {
+	    d3.csv("http://panometer.org/data/shifts/" + cformat(popdate) + "-metashift.csv", function(csv) {
 		var havg = csv.map(function(d) { return d.refH; });
 		var tcomp = csv.map(function(d) { return d.compH; });
 
@@ -1373,9 +1373,9 @@
 
 	addthis_share.passthrough.twitter.text = longformat(update)+", word shift:";
 
-	d3.text("http://hedonometer.org/data/word-vectors/"+cformat(update)+"-sum.csv",function(tmp) {
+	d3.text("http://panometer.org/data/word-vectors/"+cformat(update)+"-sum.csv",function(tmp) {
 	    compFvec = tmp.split('\n').slice(0,10222);
-	    d3.text("http://hedonometer.org/data/word-vectors/"+cformat(d3.time.day.offset(update,0))+"-prev7.csv",function(tmp2) {
+	    d3.text("http://panometer.org/data/word-vectors/"+cformat(d3.time.day.offset(update,0))+"-prev7.csv",function(tmp2) {
 		refFvec = tmp2.split('\n').slice(0,10222);
 
 
@@ -1409,7 +1409,7 @@
 		    d3.select('#modaltitle').html(tmpStr);
 		}
 		else { 
-		    d3.select("#modaltitle").html("Interactive Wordshift <span class='label label-default'></span><img src='static/hedonometer/graphics/white.png' height='35'/>");
+		    d3.select("#modaltitle").html("Interactive Wordshift <span class='label label-default'></span><img src='static/panometer/graphics/white.png' height='35'/>");
 		}
 
 		// grab the modal body
@@ -1441,7 +1441,7 @@
 		//     return hedotools.shifter._refH() <= hedotools.shifter._compH() ? head + "happier than the last seven days:" : head + "sadder than the last seven days:";
 		// });
 
-		tmptext = tmptext.concat([hedotools.shifter._refH() <= hedotools.shifter._compH() ? "What's making this day " + "happier than the last seven days:" : "What's making this day " + "sadder than the last seven days:"]);
+		tmptext = tmptext.concat([hedotools.shifter._refH() <= hedotools.shifter._compH() ? "What's making this day " + meteraction[0] + " than the last seven days:" : "What's making this day " + meteraction[1] + "sadder than the last seven days:"]);
 
 		if (update.getTime() === timeseries[0].date.getTime()) {
 		    modalfooter.select(".left").attr("disabled","disabled");
@@ -1523,9 +1523,9 @@
     $('#myModal2').on('show.bs.modal', function (e) {
 	console.log("embed modal shown");
 	$('#linktextarea').text(window.location.href);
-	$('#embedtextarea').text('<iframe src="http://hedonometer.org/embed/main/'+datedecoder().current+'/'+((shiftseldecoder().current.length > 0) ? '?wordtypes='+shiftseldecoder().current : '' )+'" width="590" height="800" frameborder="0" scrolling="no"></iframe>');
+	$('#embedtextarea').text('<iframe src="http://panometer.org/embed/main/'+datedecoder().current+'/'+((shiftseldecoder().current.length > 0) ? '?wordtypes='+shiftseldecoder().current : '' )+'" width="590" height="800" frameborder="0" scrolling="no"></iframe>');
 
-	filename = 'hedonometer-'+cformat($('#dp1').datepicker('getDate'))+'-wordshift';
+	filename = 'panometer-'+cformat($('#dp1').datepicker('getDate'))+'-wordshift';
 
 	// turn off the reset button
 	hedotools.shifter.resetbuttontoggle(false);
