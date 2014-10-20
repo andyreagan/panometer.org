@@ -6,7 +6,7 @@
 {% block content %}
     <div class="container">
       <div class="infobox">
-        <h4>Insomnia on Twitter</h4>
+        <h4>Boredom on Twitter</h4>
       </div>
       <p style="margin-bottom:0px; font-size: 11px;">
       </p>
@@ -105,14 +105,17 @@
 {% block bottomjs %}
 
     <script>
-      var metername = "insomniometer";
+      var metername = "boredometer";
+      var sumfile = "sumbored";
+      var meteraction = ["more bored","less bored"];
     </script>
 
     <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}"></script>
     <script src="{% static "panometer/js/bootstrap.min.js" %}"></script>
+    <script src="{% static "panometer/js/bootstrap-datepicker.js" %}"></script>
     <script src="{% static "panometer/js/d3.andy.js" %}"></script>
     <script src="{% static "panometer/js/urllib.js" %}"></script>
-    <script src="{% static "panometer/js/loadlabMT.js" %}"></script>
+    <script src="{% static "panometer/js/loadometer.js" %}"></script>
     <script src="{% static "panometer/js/hedotools.init.js" %}"></script>
     <script src="{% static "panometer/js/hedotools.shifter.js" %}"></script>
     <script src="{% static "panometer/js/timeline.js" %}"></script>

@@ -519,7 +519,7 @@
 
     var minDate,maxDate;
 
-    d3.csv("http://hedonometer.org/data/word-vectors/sumhapps.csv", function(data) {
+    d3.csv("http://hedonometer.org/data/word-vectors/"+sumfile+".csv", function(data) {
 	minDate = getDate(data[0]);
 	maxDate = getDate(data[data.length - 1]);
 	var parse = d3.time.format("%Y-%m-%d").parse;
@@ -535,7 +535,7 @@
 	x.domain(d3.extent(data.map(function(d) {
 	    return d.date;
 	})));
-	y.domain([5.8, 6.40]);
+	y.domain(d3.extent(data.map(function(d) { return d.value; })));
 	//x2.domain(x.domain());
 	y2.domain(y.domain());
 
@@ -644,133 +644,133 @@
 
 	var format = d3.time.format("%m-%d");
 
-	// http://hedonometer.org/api/v1/events/?format=json
-	d3.json('http://hedonometer.org/api/v1/events/?format=json',function(json) { 
-	    bigdays = json.objects;
-	    bigdays.map( function(d) { d.date = dformat.parse(d.date);
-				       d.x = parseFloat(d.x);
-				       d.shorter = d.shorter.split(',');
-				       // don't let them overflow the bottom
-				       d.y = d3.min([parseFloat(d.y),height-parseFloat(y(d.value))-d.shorter.length*10]); 
-				       d.importance = parseFloat(d.importance);})
+ // 	// http://hedonometer.org/api/v1/events/?format=json
+ // 	d3.json('http://hedonometer.org/api/v1/events/?format=json',function(json) { 
+ // 	    bigdays = json.objects;
+ // 	    bigdays.map( function(d) { d.date = dformat.parse(d.date);
+ // 				       d.x = parseFloat(d.x);
+ // 				       d.shorter = d.shorter.split(',');
+ // 				       // don't let them overflow the bottom
+ // 				       d.y = d3.min([parseFloat(d.y),height-parseFloat(y(d.value))-d.shorter.length*10]); 
+ // 				       d.importance = parseFloat(d.importance);})
 
-	    var bigdaylines = focus2.selectAll("line.bigdayline").data(bigdays).enter()
-		.append("line")
-		.attr({
-		    // the x and y get set upon brushing
-		    "stroke": "grey",
-		    "stroke-width": 0.5,
-		    "class": "bigdayline",
-		    "visibility": "hidden",
-		});
+ // 	    var bigdaylines = focus2.selectAll("line.bigdayline").data(bigdays).enter()
+ // 		.append("line")
+ // 		.attr({
+ // 		    // the x and y get set upon brushing
+ // 		    "stroke": "grey",
+ // 		    "stroke-width": 0.5,
+ // 		    "class": "bigdayline",
+ // 		    "visibility": "hidden",
+ // 		});
 
-	    var bigdaygroups = focus2.selectAll("g.bigdaygroup").data(bigdays).enter()
-		.append("g")
-	        .attr("class","bigdaygroup")
-		.attr("transform",function(d,i) { return "translate("+(x(d.date)+d.x)+","+(y(d.value)+d.y)+")"; });
+ // 	    var bigdaygroups = focus2.selectAll("g.bigdaygroup").data(bigdays).enter()
+ // 		.append("g")
+ // 	        .attr("class","bigdaygroup")
+ // 		.attr("transform",function(d,i) { return "translate("+(x(d.date)+d.x)+","+(y(d.value)+d.y)+")"; });
 	    
-	    var textwidth = 6;
-	    // width of characters
-	    var charwidth = 3;
+ // 	    var textwidth = 6;
+ // 	    // width of characters
+ // 	    var charwidth = 3;
 
-	    var line0 = bigdaygroups
-		.append("text")
-		.text(function(d) { // console.log(d.shorter.length); 
- return d.shorter[0]; } )
-		.attr("class","bigdaytext")
- 	    // .attr("stroke-width","0.1")
-		.attr("dx", 0)
-		      //function(d) { 
-		    // return -d.shorter[0].width()/2; 
-		    // return 0; 
-		    //return -d.shorter[0].length*charwidth/2; 
-		    // return -d3.select(this).attr("width")/2;
-		//})
-		.attr("dy", function(d) { return 0; })
-		.attr("stroke","")
-		.attr("fill","grey")
-		.attr("visibility","hidden");
+ // 	    var line0 = bigdaygroups
+ // 		.append("text")
+ // 		.text(function(d) { // console.log(d.shorter.length); 
+ // return d.shorter[0]; } )
+ // 		.attr("class","bigdaytext")
+ // 	    // .attr("stroke-width","0.1")
+ // 		.attr("dx", 0)
+ // 		      //function(d) { 
+ // 		    // return -d.shorter[0].width()/2; 
+ // 		    // return 0; 
+ // 		    //return -d.shorter[0].length*charwidth/2; 
+ // 		    // return -d3.select(this).attr("width")/2;
+ // 		//})
+ // 		.attr("dy", function(d) { return 0; })
+ // 		.attr("stroke","")
+ // 		.attr("fill","grey")
+ // 		.attr("visibility","hidden");
 
-	    bigdaygroups
-		.append("text")
-		.text(function(d) { if (d.shorter.length > 1) { return d.shorter[1]; }
-				    else { return ""; } })
-		.attr("class","bigdaytext")
-		.attr("dx", 0) // function(d) { 
-		//     if (d.shorter.length > 1) {
-		// 	// return -d.shorter[1].width()/2; 
-		// 	// return 0;
-		// 	return -d.shorter[1].length*charwidth/2; 
-		//     } 
-		//     else { 
-		// 	return 0; 
-		//     } 
-		// })
-		.attr("dy", function(d) { return 15; })
-		.attr("stroke","")
-		.attr("fill","grey")
-		.attr("visibility","hidden");
+ // 	    bigdaygroups
+ // 		.append("text")
+ // 		.text(function(d) { if (d.shorter.length > 1) { return d.shorter[1]; }
+ // 				    else { return ""; } })
+ // 		.attr("class","bigdaytext")
+ // 		.attr("dx", 0) // function(d) { 
+ // 		//     if (d.shorter.length > 1) {
+ // 		// 	// return -d.shorter[1].width()/2; 
+ // 		// 	// return 0;
+ // 		// 	return -d.shorter[1].length*charwidth/2; 
+ // 		//     } 
+ // 		//     else { 
+ // 		// 	return 0; 
+ // 		//     } 
+ // 		// })
+ // 		.attr("dy", function(d) { return 15; })
+ // 		.attr("stroke","")
+ // 		.attr("fill","grey")
+ // 		.attr("visibility","hidden");
 
-	    bigdaygroups
-		.append("text")
-		.text(function(d) { if (d.shorter.length > 2) { return d.shorter[2]; }
-				    else { return ""; } })
-		.attr("class","bigdaytext")
-		.attr("dx", 0)
-		.attr("dy", function(d) { return 30; })
-		.attr("stroke","")
-		.attr("fill","grey")
-		.attr("visibility","hidden");
+ // 	    bigdaygroups
+ // 		.append("text")
+ // 		.text(function(d) { if (d.shorter.length > 2) { return d.shorter[2]; }
+ // 				    else { return ""; } })
+ // 		.attr("class","bigdaytext")
+ // 		.attr("dx", 0)
+ // 		.attr("dy", function(d) { return 30; })
+ // 		.attr("stroke","")
+ // 		.attr("fill","grey")
+ // 		.attr("visibility","hidden");
 
-	    bigdaygroups
-		.append("text")
-		.text(function(d) { if (d.shorter.length > 3) { return d.shorter[3]; }
-				    else { return ""; } })
-		.attr("class","bigdaytext")
-		.attr("dx", 0)
-		.attr("dy", function(d) { return 45; })
-		.attr("stroke","")
-		.attr("fill","grey")
-		.attr("visibility","hidden");
+ // 	    bigdaygroups
+ // 		.append("text")
+ // 		.text(function(d) { if (d.shorter.length > 3) { return d.shorter[3]; }
+ // 				    else { return ""; } })
+ // 		.attr("class","bigdaytext")
+ // 		.attr("dx", 0)
+ // 		.attr("dy", function(d) { return 45; })
+ // 		.attr("stroke","")
+ // 		.attr("fill","grey")
+ // 		.attr("visibility","hidden");
 	    
-	    // d3.selectAll("text.bigdaytext").attr("dx",function(d) {
-	    // 	return -d3.select(this).attr("width")/2;
-	    // })
+ // 	    // d3.selectAll("text.bigdaytext").attr("dx",function(d) {
+ // 	    // 	return -d3.select(this).attr("width")/2;
+ // 	    // })
 
-	    // call the brush initially
-	    brushing();
-	    focus.selectAll(".brushingline")
-		.attr({ 
-		    "visibility": "hidden",
-		});
+ // 	    // call the brush initially
+ // 	    brushing();
+ // 	    focus.selectAll(".brushingline")
+ // 		.attr({ 
+ // 		    "visibility": "hidden",
+ // 		});
 
-	    // now go and fix all of the offsets
-	    d3.selectAll("text.bigdaytext").attr("dx",function(d,i) { return -this.clientWidth/2; })
-	    // d3.selectAll("text.bigdaytext").attr("fill","white")
-	    // d3.selectAll("line.bigdayline").attr("stroke","white")
+ // 	    // now go and fix all of the offsets
+ // 	    d3.selectAll("text.bigdaytext").attr("dx",function(d,i) { return -this.clientWidth/2; })
+ // 	    // d3.selectAll("text.bigdaytext").attr("fill","white")
+ // 	    // d3.selectAll("line.bigdayline").attr("stroke","white")
 
-	    // add a catch to update the popup based on whether there was a big event
-	    // console.log(datedecoder().current);
-	    if (datedecoder().current.length > 0) {
-		// console.log("checking for popup event");
-		var pulldate = cformat.parse(datedecoder().current);
-		for (var i=0; i<bigdays.length; i++) {
-		    if (bigdays[i].date.getTime() === pulldate.getTime()) {
-			bigdaytest = true;
-			bigdaywiki = bigdays[i].wiki;
-			bigdaytext = bigdays[i].longer;
-			// console.log(addthis_share.passthrough.twitter.text);
-			addthis_share.passthrough.twitter.text = bigdaytext+", "+longformat(pulldate)+", word shift:"
-			// console.log(addthis_share.passthrough.twitter.text);
-			d3.select('#modaltitle').html('Interactive Wordshift <span class="label label-default">Major Event <i class="fa fa-signal"></i></span> <a href="'+bigdaywiki.safe()+'" target="_blank"><img src="https://lh6.ggpht.com/-Eq7SGa8CVtZCQPXmnux59sebPPU04j1gak4ppkMVboUMQ_ucceGCHrC1wtqfqyByg=w300" height="35"/></a>');
-			var modalbody = d3.select("#moveshifthere");
-			var paragraphs = modalbody.selectAll("p").data(["<b>"+longerformat(pulldate)+"</b>","<b>"+bigdaytext+"</b>"]);
-			paragraphs.attr("class","shifttitle").html(function(d,i) { return d; } );
-			break;
-		    };
-		};
-	    };
-	} );
+ // 	    // add a catch to update the popup based on whether there was a big event
+ // 	    // console.log(datedecoder().current);
+ // 	    if (datedecoder().current.length > 0) {
+ // 		// console.log("checking for popup event");
+ // 		var pulldate = cformat.parse(datedecoder().current);
+ // 		for (var i=0; i<bigdays.length; i++) {
+ // 		    if (bigdays[i].date.getTime() === pulldate.getTime()) {
+ // 			bigdaytest = true;
+ // 			bigdaywiki = bigdays[i].wiki;
+ // 			bigdaytext = bigdays[i].longer;
+ // 			// console.log(addthis_share.passthrough.twitter.text);
+ // 			addthis_share.passthrough.twitter.text = bigdaytext+", "+longformat(pulldate)+", word shift:"
+ // 			// console.log(addthis_share.passthrough.twitter.text);
+ // 			d3.select('#modaltitle').html('Interactive Wordshift <span class="label label-default">Major Event <i class="fa fa-signal"></i></span> <a href="'+bigdaywiki.safe()+'" target="_blank"><img src="https://lh6.ggpht.com/-Eq7SGa8CVtZCQPXmnux59sebPPU04j1gak4ppkMVboUMQ_ucceGCHrC1wtqfqyByg=w300" height="35"/></a>');
+ // 			var modalbody = d3.select("#moveshifthere");
+ // 			var paragraphs = modalbody.selectAll("p").data(["<b>"+longerformat(pulldate)+"</b>","<b>"+bigdaytext+"</b>"]);
+ // 			paragraphs.attr("class","shifttitle").html(function(d,i) { return d; } );
+ // 			break;
+ // 		    };
+ // 		};
+ // 	    };
+ // 	} );
 
 	// d3.select(".x.brush").call(brush.event);
 	var brushgroup = context.append("g").attr("class", "x brush")
@@ -1147,7 +1147,7 @@
 		    // longer
 		    // return havg <= tcomp ? head + "happier than the last seven days:" : head + "sadder than the last seven days:";
 		    // shorter
-		    return havg <= tcomp ? head + "happier" : head + "sadder";
+		    return havg <= tcomp ? head + meteraction[0] : head + meteraction[1];
 		}).attr("class","shifttitlewhatisone");
 		shortlist.append("svg:text").attr("x", 20).attr("y", 72).attr("font-size", "10px").text(function() {
 		    return "than the last seven days:"

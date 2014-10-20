@@ -22,6 +22,9 @@ urlpatterns = patterns('',
     url(r'^insomniometer.html',
         TemplateView.as_view(template_name='panometer/insomniometer.html'),
         name='insomniometer'),
+    url(r'^boredometer.html',
+        TemplateView.as_view(template_name='panometer/boredometer.html'),
+        name='boredometer'),
     (r'^api/', include(v1_api.urls)),
 )
 
