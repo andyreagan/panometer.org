@@ -1441,7 +1441,7 @@
 		//     return hedotools.shifter._refH() <= hedotools.shifter._compH() ? head + "happier than the last seven days:" : head + "sadder than the last seven days:";
 		// });
 
-		tmptext = tmptext.concat([hedotools.shifter._refH() <= hedotools.shifter._compH() ? "What's making this day " + meteraction[0] + " than the last seven days:" : "What's making this day " + meteraction[1] + "sadder than the last seven days:"]);
+		tmptext = tmptext.concat([hedotools.shifter._refH() <= hedotools.shifter._compH() ? "What's making this day " + meteraction[0] + " than the last seven days:" : "What's making this day " + meteraction[1] + " than the last seven days:"]);
 
 		if (update.getTime() === timeseries[0].date.getTime()) {
 		    modalfooter.select(".left").attr("disabled","disabled");
