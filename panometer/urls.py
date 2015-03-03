@@ -15,6 +15,8 @@ v1_api = Api(api_name='v1')
 # v1_api.register(WordResource())
 # v1_api.register(GeoHappsResource())
 
+from panonometer import views
+
 urlpatterns = patterns('',
     url(r'^index.html',
         TemplateView.as_view(template_name='panometer/index.html'),
@@ -25,6 +27,8 @@ urlpatterns = patterns('',
     url(r'^boredometer.html',
         TemplateView.as_view(template_name='panometer/boredometer.html'),
         name='boredometer'),
+    # url(r'^(?P<lang>[\w]+)/index.html',views.timeseries, name='timeseries'),
+    url(r'^/svometer/(?P<rank>[\w]+)/',views.svometer, name='ometer'),
     (r'^api/', include(v1_api.urls)),
 )
 

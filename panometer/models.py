@@ -59,7 +59,7 @@ class Book(models.Model):
         ordering = ('author',)
 
 class Embeddable(models.Model):
-    # the hash
+    # the hashg
     # will look things up by this
     h = models.CharField(max_length=64)
     # store the filenames and some titles for the things
