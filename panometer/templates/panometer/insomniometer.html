@@ -6,7 +6,7 @@
 {% block content %}
     <div class="container">
       <div class="infobox">
-        <h4>Insomnia on Twitter</h4>
+        <h4>{{ m.customLongTitle }}</h4>
       </div>
       <p style="margin-bottom:0px; font-size: 11px;">
       </p>
@@ -105,7 +105,7 @@
 {% block bottomjs %}
 
     <script>
-      var metername = "insomniometer";
+      var metername = {{ m.title|escapejs }};
       alert("almost there!");
     </script>
 
