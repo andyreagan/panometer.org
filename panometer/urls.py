@@ -5,15 +5,10 @@ from django.views.generic import TemplateView,RedirectView
 
 # from hedonometer import views
 from tastypie.api import Api
-# from hedonometer.api import EventResource,BookResource,RandomBookResource,HappsResource,WordResource,GeoHappsResource
+# from hedonometer.api import GeoHappsResource
 
 v1_api = Api(api_name='v1')
 # v1_api.register(EventResource())
-# v1_api.register(HappsResource())
-# v1_api.register(BookResource())
-# v1_api.register(RandomBookResource())
-# v1_api.register(WordResource())
-# v1_api.register(GeoHappsResource())
 
 # from panonometer import views
 
