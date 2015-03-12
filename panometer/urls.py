@@ -9,7 +9,7 @@ from tastypie.api import Api
 v1_api = Api(api_name='v1')
 # v1_api.register(...)
 
-from panonometer import views
+from panometer import views
 
 urlpatterns = patterns('',
     url(r'^index.html',
