@@ -3,14 +3,13 @@
 from django.conf.urls import patterns, url, include
 from django.views.generic import TemplateView,RedirectView
 
-# from hedonometer import views
 from tastypie.api import Api
-# from hedonometer.api import GeoHappsResource
+# from panometer.api import ...
 
 v1_api = Api(api_name='v1')
-# v1_api.register(EventResource())
+# v1_api.register(...)
 
-# from panonometer import views
+from panonometer import views
 
 urlpatterns = patterns('',
     url(r'^index.html',
