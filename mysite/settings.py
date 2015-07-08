@@ -56,7 +56,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'panometer',
     'django.contrib.humanize',
-    'south',
     'tastypie',
 )
 
@@ -66,6 +65,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     # this doesn't allow iframes from our site
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -82,7 +82,7 @@ DATABASES = {
         'ENGINE': os.getenv('DJ_DB_ENGINE'),
         'NAME': os.getenv('DJ_DB_NAME'),
         'USER': os.getenv('DJ_DB_USER'),
-        'PASSWORD': os.getenv('DJ_DB_PASSWORD'),
+        # 'PASSWORD': os.getenv('DJ_DB_PASSWORD'),
         'HOST': os.getenv('DJ_DB_HOST'),
         'PORT': os.getenv('DJ_DB_PORT'),
     }
