@@ -14,9 +14,10 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 
 def dummy(request):
-    return render(request, 'panometer/index.html')
+    return render(request, "panometer/index.html")
 
 def ometer(request,meter):
     # m = get_object_or_404(Meter,title=meter)
-    template = meter+".html"
-    return render(request, template) # ,{'model': m})
+    template = "panometer/"+meter+".html"
+    return render(request, template) # ,{"model": m})
+
