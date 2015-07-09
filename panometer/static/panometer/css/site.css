@@ -2,6 +2,8 @@ html,
 body {
     width: 100%;
     height: 100%;
+    margin: 0;
+    padding: 0;    
 }
 
 body {
@@ -9,8 +11,11 @@ body {
 }
 
 .text-vertical-center {
+    margin: 0;
+    padding: 0;
     display: table-cell;
-    text-align: center;
+    horizontal-align: center;
+    /* text-align: center;     */
     vertical-align: middle;
     color: white;
 }
@@ -27,9 +32,32 @@ body {
     position: relative;
     width: 100%;
     height: 100%;
-    background: url(/static/panometer/cockpit.jpg) no-repeat center center scroll;
+    /* background: url(/static/panometer/cockpit.jpg) no-repeat center center scroll; */
+    background-color: #FFF9CC; /* cornsilk */
     -webkit-background-size: cover;
     -moz-background-size: cover;
     background-size: cover;
     -o-background-size: cover;
+}
+
+.metacontainer {
+    width: 100%;
+    height: 100%;
+    background-color: #FFF9CC; /* cornsilk */  
+}
+
+.container {
+  width: 500px;
+  height: 500px;
+  position: relative;
+  margin: auto;
+  
+}
+
+#mainlogo {
+  width: 400px;
+  height: 400px;
+  position: absolute;
+  top: 50px;
+  left: 50px;
 }

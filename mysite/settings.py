@@ -82,7 +82,7 @@ DATABASES = {
         'ENGINE': os.getenv('DJ_DB_ENGINE'),
         'NAME': os.getenv('DJ_DB_NAME'),
         'USER': os.getenv('DJ_DB_USER'),
-        # 'PASSWORD': os.getenv('DJ_DB_PASSWORD'),
+        'PASSWORD': os.getenv('DJ_DB_PASSWORD'),
         'HOST': os.getenv('DJ_DB_HOST'),
         'PORT': os.getenv('DJ_DB_PORT'),
     }

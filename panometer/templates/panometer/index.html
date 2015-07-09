@@ -1,7 +1,6 @@
 {% extends "panometer/base.html" %}
 {% load staticfiles %}
 {% block headercss %}
-<link href="{% static "panometer/css/bootstrap.min.css" %}" rel="stylesheet">
 <link href="{% static "panometer/css/site.css" %}" rel="stylesheet">
 {% endblock %}
 
@@ -10,12 +9,20 @@
 
 {% block content %}
     <!-- Header -->
-    <header id="top" class="header">
-        <div class="text-vertical-center">
-            <h1>panometer.org</h1>
-            <h3>we're measuring everything</h3>
-        </div>
-    </header>
+    <!-- <header id="top" class="header"> -->
+    <!--   <div class="text-vertical-center"> -->
+    <!--     <\!-- <h1>panometer.org</h1> -\-> -->
+    <!--     <\!-- <h3>we're measuring everything</h3> -\->	 -->
+    <!-- 	<\!-- <img src="/static/panometer/graphics/logo-3.svg" alt="logo">	 -\-> -->
+    <!--   </div>	 -->
+	
+    <!-- </header> -->
+    <div class="metacontainer">
+      <div class="container">
+	<svg id="mainlogo"></svg>
+      </div>
+    </div>
+    
 {% endblock %}
 
 {% block footer %}
@@ -24,8 +31,9 @@
 {% block bottomjs %}
 
     <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}"></script>
-    <script src="{% static "panometer/js/bootstrap.min.js" %}"></script>
-
+    <script src="{% static "panometer/js/snap.svg.js" %}"></script>
+    <script src="{% static "panometer/js/snap-test.js" %}"></script>
+    
 {% endblock %}
 
 
