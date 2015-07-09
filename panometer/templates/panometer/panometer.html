@@ -2,13 +2,97 @@
 {% load staticfiles %}
 
 {% block headercss %}
-<link href="{% static "panometer/css/timeline-all.min.css" %}" rel="stylesheet">
+<link href="{% static "panometer/css/bootstrap.css" %}" rel="stylesheet">
+<link href="{% static "panometer/css/panometer.css" %}" rel="stylesheet">
 {% endblock %}
 
 {% block nav %}
 {% endblock %}
 
 {% block content %}
+<div class="container">
+  
+  <div class="row">
+    <div class="col-sm-4 offset-0">
+      <!-- the hidden from this
+	   http://getbootstrap.com/css/#responsive-utilities-classes -->
+
+      <br>
+      <br>
+      <br>
+      <br>
+      <center>
+	<h4>Caloric Balance</h4>
+      </center>
+      
+      <!-- <h5>Map</h5> -->
+      <div id="map01" class="figure"></div>
+      
+    </div> 
+    <!-- <div class="clearfix visible-xs"></div> -->
+    <div class="col-sm-8 offset-0">
+      
+      <div class="row">
+	
+	<div class="col-sm-3 offset-0"></div>
+	
+	<div class="col-sm-6 offset-0">
+
+	</div>
+	
+	<div class="col-sm-3 offset-0"></div>
+	
+      </div> <!-- row -->
+      
+      <div class="row">
+	
+	<div class="col-sm-3 offset-0"></div>
+	
+	<div class="col-sm-6 offset-0"></div>
+	
+	<div class="col-sm-3 offset-0"></div>
+	
+      </div> <!-- row -->
+
+      <div class="row">
+	<div class="col-xs-12 col-sm-6 offset-0">
+	  <!-- <h5>Food shift</h5> -->
+	  <!-- <p>Click on the graph and drag up to reveal additional foods.</p> -->
+	  <div id="shift01" class="figure">
+	    <center>
+	      <p class="sumtext top"></p>
+	      <p class="sumtext bottom"></p>
+	      <p class="sumtext bottom"></p>
+	    </center>
+	  </div>
+	</div>
+	<div class="col-xs-12 col-sm-6 offset-0">
+	  <!-- <h5>Activity shift</h5> -->
+	  <!-- <p>Click on the graph and drag up to reveal additional activities.</p> -->
+	  <div id="shift02" class="figure">
+	    <center>
+	      <p class="sumtext top"></p>
+	      <p class="sumtext bottom"></p>
+	      <p class="sumtext bottom"></p>
+	    </center>
+	  </div>
+	</div>
+      </div>
+      
+    </div> <!-- col -->
+  </div> <!-- row -->
+
+  <div class="row">
+    <div class="col-xs-12 offset-0">	
+
+      <!-- <h5>Bar chart</h5> -->
+      <div id="bars01" class="figure"></div>
+
+    </div> <!-- col -->
+  </div> <!-- row -->
+
+  
+</div><!-- /.container -->
 {% endblock %}
 
 {% block footer %}
@@ -16,8 +100,18 @@
 
 {% block bottomjs %}
 
-    <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}"></script>
-    <script src="{% static "panometer/js/snap.svg.js" %}"></script>
-    <script src="{% static "panometer/js/snap-test.js" %}"></script>
+
+    <!-- use these for all of the files individually (tad faster developing) -->
+    <script src="{% static "panometer/js/d3.andy.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/urllib.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/topojson.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/hedotools.init.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/hedotools.shifter.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/hedotools.shifterTwo.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/plotBarChartHorizontal.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/drawMap.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/bootstrap.min.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/maps-on-load.js" %}" charset="utf-8"></script>
     
 {% endblock %}
