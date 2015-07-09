@@ -65,7 +65,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # this is wanted by dango 1.8....
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     # this doesn't allow iframes from our site
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
