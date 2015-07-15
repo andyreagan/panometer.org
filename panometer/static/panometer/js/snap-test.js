@@ -1,14 +1,21 @@
 var s = Snap("#mainlogo");
 // var s = Snap(500,500);
 
-Snap.load("/static/panometer/graphics/logo-6.svg", function (f) {
-    // Note that we traversre and change attr before SVG
-    // is even added to the page
-    // f.select("polygon[fill='#09B39C']").attr({fill: "#bada55"});
+Snap.load("/static/panometer/graphics/logo-7.2.svg", function (f) {
+
+    // grab the main group out, and put it in the DOM SVG
     main_group = f.select("g");
     s.append(main_group);
-    // Making croc draggable. Go ahead drag it around!
-    main_group.drag();
+
+    // main the whole thing draggable
+    // this may be hurting the brower, unsure
+    // main_group.drag();
+
+    main_group.select("#meter5-copy").click(function() { window.location.assign("http://panometer.org/instruments/lexicocalorimeter/"); });
+    main_group.select("#panometer-logo").click(function() { window.location.assign("http://panometer.org/instruments/lexicocalorimeter/"); });
+
+        main_group.select("#meter3-copy").click(function() { window.location.assign("http://hedonometer.org"); });
+    main_group.select("#smiley").click(function() { window.location.assign("http://hedonometer.org"); });
 
     arrow1 = main_group.select("#arrow1").select("path");
     arrow1x = main_group.select("#arrow1").select("ellipse").attr("cx");
@@ -23,7 +30,7 @@ Snap.load("/static/panometer/graphics/logo-6.svg", function (f) {
     }
     rotateInfinite1();
 
-        arrow2 = main_group.select("#arrow2").select("path");
+    arrow2 = main_group.select("#arrow2").select("path");
     arrow2x = main_group.select("#arrow2").select("ellipse").attr("cx");
     arrow2y = main_group.select("#arrow2").select("ellipse").attr("cy");    
     function rotateInfinite2() {
@@ -36,7 +43,7 @@ Snap.load("/static/panometer/graphics/logo-6.svg", function (f) {
     }
     rotateInfinite2();
 
-        arrow3 = main_group.select("#arrow3").select("path");
+    arrow3 = main_group.select("#arrow3").select("path");
     arrow3x = main_group.select("#arrow3").select("ellipse").attr("cx");
     arrow3y = main_group.select("#arrow3").select("ellipse").attr("cy");    
     function rotateInfinite3() {
@@ -49,7 +56,7 @@ Snap.load("/static/panometer/graphics/logo-6.svg", function (f) {
     }
     rotateInfinite3();
 
-        arrow4 = main_group.select("#arrow4").select("path");
+    arrow4 = main_group.select("#arrow4").select("path");
     arrow4x = main_group.select("#arrow4").select("ellipse").attr("cx");
     arrow4y = main_group.select("#arrow4").select("ellipse").attr("cy");    
     function rotateInfinite4() {

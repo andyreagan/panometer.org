@@ -49,7 +49,7 @@ body {
 }
 
 .logocontainer {
-  width: 500px;
+  width: 600px;
   height: 500px;
   position: relative;
   margin: auto;
@@ -57,9 +57,25 @@ body {
 }
 
 #mainlogo {
-  width: 400px;
+  width: 500px;
   height: 400px;
   position: absolute;
   top: 50px;
   left: 50px;
+}
+
+#meter5-copy {
+    cursor: pointer;
+}
+
+#panometer-logo {
+    cursor: pointer;
+}
+
+#meter3-copy {
+    cursor: pointer;
+}
+
+#smiley {
+    cursor: pointer;
 }
