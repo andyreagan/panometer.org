@@ -10,24 +10,31 @@
     <meta name="application-name" content="Panometer"/>
     <meta name="description" content="Panometer.org is an instrument that measures large populations in real time."/>
     <meta name="developer" content="Andy Reagan, UVM"/>
+    
+    {% block twitterinfo %}    
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="Panometer">
     <meta name="twitter:title" content="The Panometer">
     <meta name="twitter:description" content="Panometer.org is an instrument that measures large populations in real time.">
+    {% endblock %}
+    
     {% block headerextrameta %}
     {% endblock %}
-    <!-- Styles -->
+    
     {% block headercss %}
-    <link href="{% static "panometer/css/base-all.min.css" %}" rel="stylesheet">
+    <!-- Styles -->
+    <link href="{% static "panometer/css/base-all.css" %}" rel="stylesheet">
     {% endblock %}
 
     {% block headerjs %}
     {% endblock %}
+    
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
 	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
-
+    
+    {% block addthis_header %}
     <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-539b215a08fde1a0"></script>
     <script type="text/javascript">
       var addthis_config = addthis_config || {};
@@ -44,44 +51,51 @@
           }
         }
       }
-    </script>
+    </script>    
+    {% endblock %}
 
   </head>
 
   <body>
+
     {% block nav %}
 
-    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-default navbar-fixed-top">
       <div class="container">
-	<div class="navbar-header">
-	  <!-- <div class="navbar-brand"> -->
-	  <!-- <img alt="logo" src="{% static "panometer/graphics/panometer-logo.pn" %}g" class="img-responsive img-circle brand" width="23px"> -->
-
-	  <!-- </div> -->
-	  <ul class="nav navbar-nav">
-	    <li class="dropdown">
-	      <a href="#" class="dropdown-toggle navbar-brand brand" data-toggle="dropdown" id="navbarbrand">panometer <span class="caret"></span></a>
-	      <ul class="dropdown-menu" role="menu">
-		<li><a href="http://hedonometer.org">Hedonometer</a></li>
-		<li role="presentation" class="divider"></li>
-		<li><a href="/insomniometer.html">Insomniometer</a></li>
-	      </ul>
-	    </li>
-	  </ul>
-	  <button type="button" class="navbar-toggle pull-right" data-toggle="collapse" data-target=".navbar-collapse">
-	    <span class="icon-bar"></span>
-	    <span class="icon-bar"></span>
-	  </button>
-	</div>
-	<div class="navbar-collapse collapse">
-	  <ul class="nav navbar-nav">
-	    <li><a href="/about.html">About</a></li>
-	  </ul>
-	</div>
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/index.html">Panometer</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Instruments <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="http://hedonometer.org" target="_blank">Hedonometer</a></li>
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-header">New</li>
+                <li><a href="/instruments/lexicocalorimeter/">Lexicocalorimeter</a></li>
+              </ul>
+            </li>
+            <li><a href="/about.html">About</a></li>
+          </ul>
+          <!-- <ul class="nav navbar-nav navbar-right"> -->
+          <!--   <li><a href="../navbar/">Default</a></li> -->
+          <!--   <li><a href="../navbar-static-top/">Static top</a></li> -->
+          <!--   <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li> -->
+          <!-- </ul> -->
+        </div><!--/.nav-collapse -->
       </div>
-    </div>
+    </nav>        
 
     {% endblock %}
+
+
 
     {% block content %}
     {% endblock %}
@@ -109,7 +123,7 @@
 
     {% block bottomjs %}
     <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}"></script>
-    <script src="{% static "panometer/js/bootstrap.js" %}"></script>
+    <script src="{% static "panometer/js/bootstrap.min.js" %}"></script>
     {% endblock %}
 
     {% block googleanalytics %}    

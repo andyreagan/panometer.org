@@ -1,399 +1,209 @@
-// begin with some helper functions
-// http://stackoverflow.com/a/1026087/3780153
-function capitaliseFirstLetter(string)
-{
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
+var shift_height = 450;
+var num_shift_words = 24;
+var rectHeight = 11;
+var sumRectHeight = 15;
 
-// this works really well, but it's deadly slow (working max 5 elements)
-// and it's coupled to jquery
-// http://stackoverflow.com/a/5047712/3780153
-String.prototype.width = function(font) {
-    var f = font || '12px arial',
-    o = $('<div>' + this + '</div>')
-	.css({'position': 'absolute', 'float': 'left', 'white-space': 'nowrap', 'visibility': 'hidden', 'font': f})
-	.appendTo($('body')),
-    w = o.width();
-    o.remove();
-    return w;
-}
-
-// yup
-// http://stackoverflow.com/questions/3883342/add-commas-to-a-number-in-jquery
-function commaSeparateNumber(val){
-    while (/(\d+)(\d{3})/.test(val.toString())){
-	val = val.toString().replace(/(\d+)(\d{3})/, '$1'+','+'$2');
-    }
-    return val;
-}
-
-var intStr = ["one","two"];
-
-var stateSelType = true;
-// true corresponds to comparison selection
-// false corresponds to reference selection
-var activeHover = true;
-// until a selection is fixed, let this be true
-
-d3.selectAll(".selbutton").data([false,true]).on("mousedown",function(d,i) { 
-    	    if (stateSelType !== d) {
-		stateSelType = d;
-		activeHover = true;
-		d3.selectAll(".state").attr("stroke-width",0.7);
-		d3.selectAll("text.seltext").attr("fill","black")
-		d3.select("text.seltext."+intStr[i]).attr("fill","white")
-		d3.selectAll("rect.colorclick").attr("fill","#F8F8F8").attr("stroke","rgb(0,0,0)")
-		d3.select("rect.colorclick."+intStr[i]).attr("fill","#428bca").attr("stroke","#428bca");  
-		d3.select(".selbutton.one").attr("class","btn btn-default btn-xs pull-right selbutton one")
-		d3.select(".selbutton.two").attr("class","btn btn-default btn-xs pull-right selbutton two")
-		d3.select(this).attr("class",d3.select(this).attr("class").replace("default","primary"));
-	    } } );
-
-timeselencoder = d3.urllib.encoder().varname("time"); //.varval(lensExtent);
-timeseldecoder = d3.urllib.decoder().varname("time").varresult("Last 30 Days"); //.varval(lensExtent);
-
+var state_encoder = d3.urllib.encoder().varname("ID");
+var state_decoder = d3.urllib.decoder().varname("ID").varresult(Math.floor(Math.random() * 49));
 
 function initializePlot() {
-    timeDrop();
-    refcompdrops();
-    console.log(timeseldecoder().cached);
-    var timeF = timeseldecoder().cached.replace(/\+/g,' ');
-    console.log(timeF);
-    d3.select(".timelabel").text(timeF);
-    for (var i=0; i<timeFrames.length; i++) { 
-	if (timeF === timeFrameText[i]) {
-	    timeF = timeFrames[i];
-	    break;
-	}
-    }
-    loadCsv(timeF);
+    loadCsv();
 }
 
-allStateNames = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut"
-		 ,"Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana"
-		 ,"Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska"
-		 ,"Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio"
-		 ,"Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee"
-		 ,"Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","DC","U.S. as a whole"];
-
-allStateNamesUSFirst = ["U.S. as a whole","Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut"
-		 ,"Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana"
-		 ,"Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska"
-		 ,"Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio"
-		 ,"Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee"
-		 ,"Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","DC",];
-
-function stateIndex(name) {
-    var found = false;
-    for (var i=0; i<allStateNames.length; i++) {
-	if (allStateNames[i] === name) {
-	    found = true;
-	    return i;
-	}
-    }
-    if (!found) {
-	return -1;
-    }
-}
-
-ignoreWords = ["severe","flood","warning","earthquake","nigga","niggas","niggaz","nigger","hi","me","new","humidity","pressure","burns","emergency","in","la","ms","mt","oh","ok","or","pa","ma","hawaii","virginia","grand","springs","falls",];
-
-var refencoder = d3.urllib.encoder().varname("ref"), //.varval(lensExtent);
-refdecoder = d3.urllib.decoder().varname("ref").varresult(allStateNames[51]); //.varval(lensExtent);
-
-var compencoder = d3.urllib.encoder().varname("comp"), //.varval(lensExtent);
-compdecoder = d3.urllib.decoder().varname("comp").varresult(allStateNames[0]); //.varval(lensExtent); 
-
-// need to get these from the state name in the browser
-var shiftRef = stateIndex(refdecoder().cached),
-shiftComp = stateIndex(compdecoder().cached);
-
-d3.select(".reflabel").text(refdecoder().cached);
-d3.select(".complabel").text(compdecoder().cached);
-
-var refListDrop = d3.select("#refSelect").select("ul").selectAll("li").data(allStateNamesUSFirst);
-refListDrop.enter().append("li").append("a").text(function(d,i) { return d; });
-var compListDrop = d3.select("#compSelect").select("ul").selectAll("li").data(allStateNamesUSFirst);
-compListDrop.enter().append("li").append("a").text(function(d,i) { return d; });
-
-// not worrying about this yet
-shiftselencoder = d3.urllib.encoder().varname("selection"); //.varval(lensExtent);
-shiftseldecoder = d3.urllib.decoder().varname("selection").varresult("none"); //.varval(lensExtent);
-
-timeFrames = ["2013","2012","2011","lastquarter","lastmonth","lastweek"];
-timeFrameText = ["2013","2012","2011","Last 90 Days","Last 30 Days","Last 7 Days"];
-
-function refcompdrops() {
-    d3.select("#compSelect").selectAll("a")
-        .on("click", function(d,i) {
-	    // console.log(i);
-	    d3.selectAll(".state").attr("stroke-width",0.7);
-	    activeHover = true;
-	    shiftComp = stateIndex(d);
-	    d3.select(".complabel").text(d);
-	    compencoder.varval(d);
-            // key = this.selectedIndex;
-	    // key = i;
-            // timeName = timeFrames[key];
-	    // d3.select(".timelabel").text(timeFrameText[key]);
-	    // timeselencoder.varval(timeFrameText[key]);
-            // loadCsv(timeName); 
-
-	    if (shiftRef !== shiftComp) {
-		hedotools.shifter.shift(allData[shiftRef].freq,allData[shiftComp].freq,lens,words);
-		var happysad = hedotools.shifter._compH() > hedotools.shifter._refH() ? "happier" : "less happy";
-		hedotools.shifter.setfigure(d3.select('#shift01')).setText(["Why "+allData[shiftComp].name+" is "+happysad+" than "+allData[shiftRef].name+":"]).plot();
-	    }
-	});
-
-    d3.select("#refSelect").selectAll("a")
-        .on("click", function(d,i) {
-	    // console.log(i);
-	    d3.selectAll(".state").attr("stroke-width",0.7);
-	    activeHover = true;
-	    shiftRef = stateIndex(d);
-	    d3.select(".reflabel").text(d);
-	    refencoder.varval(d);
-
-	    if (shiftRef !== shiftComp) {
-		hedotools.shifter.shift(allData[shiftRef].freq,allData[shiftComp].freq,lens,words);
-		var happysad = hedotools.shifter._compH() > hedotools.shifter._refH() ? "happier" : "less happy";
-		hedotools.shifter.setfigure(d3.select('#shift01')).setText(["Why "+allData[shiftComp].name+" is "+happysad+" than "+allData[shiftRef].name+":"]).plot();
-	    }
-            // key = this.selectedIndex;
-	    // key = i;
-            // timeName = timeFrames[key];
-	    // d3.select(".timelabel").text(timeFrameText[key]);
-	    // timeselencoder.varval(timeFrameText[key]);
-            // loadCsv(timeName); 
-	});
-
-    d3.select("#rotate")
-        .on("click", function(d,i) {
-	    // console.log(i);
-	    d3.selectAll(".state").attr("stroke-width",0.7);
-	    activeHover = true;
-	    var tmp = shiftComp;
-	    shiftComp = shiftRef;
-	    shiftRef = tmp;
-	    var tmp = d3.select(".complabel").text();
-	    d3.select(".complabel").text(d3.select(".reflabel").text());
-	    d3.select(".reflabel").text(tmp);
-	    refencoder.varval(allData[shiftRef].name);
-	    compencoder.varval(allData[shiftComp].name);
-	    
-	    if (shiftRef !== shiftComp) {
-		hedotools.shifter.shift(allData[shiftRef].freq,allData[shiftComp].freq,lens,words);
-		var happysad = hedotools.shifter._compH() > hedotools.shifter._refH() ? "happier" : "less happy";
-		hedotools.shifter.setfigure(d3.select('#shift01')).setText(["Why "+allData[shiftComp].name+" is "+happysad+" than "+allData[shiftRef].name+":"]).plot();
-	    }
-	});
-}
-
-function timeDrop() {
-    d3.select("#timeSelect").selectAll("a")
-        .on("click", function(d,i) {
-            // key = this.selectedIndex;
-	    key = i;
-            timeName = timeFrames[key];
-	    d3.select(".timelabel").text(timeFrameText[key]);
-	    timeselencoder.varval(timeFrameText[key]);
-	    console.log(timeName);
-            loadCsv(timeName); 
-	});
-}
-
-function loadCsv(time) {
-    var csvLoadsRemaining = 4;
-    if (time === "2011" || time === "2012" || time === "2013") {
-	// load files from lewis
-	console.log("loading year words and scores");
-	var scoresFile = "http://hedonometer.org/data/geodata/wordScores.csv";
-	var wordsFile = "http://hedonometer.org/data/geodata/words.csv";
-	d3.text(scoresFile, function(text) {
-	    var tmp = text.split(",");
-	    lens = tmp.map(parseFloat);
-	    if (!--csvLoadsRemaining) initializePlotPlot(lens,words);
-	});
-	d3.text(wordsFile, function(text) {
-	    var tmp = text.split(",");
-	    words = tmp;
-	    if (!--csvLoadsRemaining) initializePlotPlot(lens,words);
-	});
-    }
-    else {
-	// load labMT files
-	var scoresFile = "http://hedonometer.org/data/labMT/labMTscores-english.csv";
-	var wordsFile = "http://hedonometer.org/data/labMT/labMTwords-english.csv";
-	d3.text(scoresFile, function(text) {
-	    var tmp = text.split("\n");
-	    //console.log(tmp.length);
-	    //console.log(tmp[tmp.length-1]);
-	    lens = tmp.map(parseFloat);
-	    var len = lens.length - 1;
-	    while (!lens[len]) {
-		//console.log("in while loop");
-		lens = lens.slice(0, len);
-		len--;
-	    }
-	    if (!--csvLoadsRemaining) initializePlotPlot(lens,words);
-	});
-	d3.text(wordsFile, function(text) {
-	    var tmp = text.split("\n");
-	    words = tmp;
-	    var len = words.length - 1;
-	    while (!words[len]) {
-		//console.log("in while loop");
-		words = words.slice(0, len);
-		len--;
-	    }
-	    if (!--csvLoadsRemaining) initializePlotPlot(lens,words);
-	});
-    }
-    d3.json("http://hedonometer.org/data/geodata/us-states.topojson", function(data) {
-	geoJson = data;
-	stateFeatures = topojson.feature(geoJson,geoJson.objects.states).features;
-	if (!--csvLoadsRemaining) initializePlotPlot(lens,words);
+function loadCsv() {
+    var csvLoadsRemaining = 6;
+    d3.json("http://panometer.org/data/lexicocalorimeter/state_squares.topojson", function(data) {
+        geoJson = data;
+        // stateFeatures = topojson.feature(geoJson,geoJson.objects.states).features;
+	stateFeatures = topojson.feature(geoJson,geoJson.objects.state_squares).features;
+        if (!--csvLoadsRemaining) initializePlotPlot();
     });
-    // trying to load from a new format for the more recent tweets
-    d3.text("http://hedonometer.org/data/geodata/wordCounts"+(time)+".csv", function(text) {
-    // var time = "2014-08-25-week"
-    // d3.text("http://hedonometer.org/data/geodata/combined-word-vectors/"+(time)+".csv", function(text) {
-	tmp = text.split("\n");
-	allData = Array(52);
-	for (var i=0; i<51; i++) {
-	    allData[i] = {name: allStateNames[i],
-			  rawFreq: tmp[i].split(",").map(parseFloat),
-			  freq: tmp[i].split(",")};
-	}
-	// initialize the all data
-	allData[51] = {name: allStateNames[51],
-		       rawFreq: Array(allData[0].freq.length),
-		       freq: Array(allData[0].freq.length),};
-	for (var j=0; j<allData[0].freq.length; j++) {
-	    allData[51].rawFreq[j] = 0.0;
-	}
-	for (var i=0; i<51; i++) {
-	    for (var j=0; j<allData[0].freq.length; j++) {
-		allData[51].rawFreq[j] += parseFloat(allData[i].rawFreq[j]);
-	    }
-	}
-	if (!--csvLoadsRemaining) initializePlotPlot(lens,words);
+    d3.text("http://panometer.org/data/lexicocalorimeter/foodList_lemmatized_no_quotes.csv", function (text) {
+        var tmp = text.split("\n").slice(1,451);
+        foodCals = tmp.map(function(d) { return parseFloat(d.split(",")[3]); });
+	foodNames = tmp.map(function(d) { return d.split(",")[0]; });
+        if (!--csvLoadsRemaining) initializePlotPlot();
+    });
+    d3.text("http://panometer.org/data/lexicocalorimeter/activityList_lemmatized_no_quotes.csv", function (text) {
+        var tmp = text.split("\n").slice(1,299);
+        actCals = tmp.map(function(d) { return parseFloat(d.split(",")[2]); });
+        actNames = tmp.map(function(d) { return d.split(",")[0]; });
+        if (!--csvLoadsRemaining) initializePlotPlot();
+    });
+    d3.text("http://panometer.org/data/lexicocalorimeter/stateActivitiesMatrix_lemmatized.csv", function (text) {
+        var tmp = text.split("\n").slice(1,299);
+        stateAct = tmp.map(function(d) { return d.split(",").slice(1,1000); });
+        if (!--csvLoadsRemaining) initializePlotPlot();
+    });
+    d3.text("http://panometer.org/data/lexicocalorimeter/stateFoodsMatrix_lemmatized.csv", function (text) {
+        var tmp = text.split("\n").slice(1,451);
+        stateFood = tmp.map(function(d) { return d.split(",").slice(1,1000); });
+        if (!--csvLoadsRemaining) initializePlotPlot();
+    });
+    d3.text("http://panometer.org/data/lexicocalorimeter/caloric_balance06292015.csv", function (text) {
+        var tmp = text.split("\n").slice(1,50);
+	stateFlux = tmp.map(function(d) { return [d.split(",")[0],parseFloat(d.split(",")[1])]; });
+        if (!--csvLoadsRemaining) initializePlotPlot();
     });
 };
 
-function initializePlotPlot(lens,words) {
-    // draw the lens
-    hedotools.lens.setfigure(d3.select("#lens01")).setdata(lens).plot();
-    // drawLensGeo(d3.select("#lens01"),lens);
-
-    // initially apply the lens, and draw the shift
-    for (var j=0; j<allData.length; j++) {
-	for (var i=0; i<allData[j].rawFreq.length; i++) {
-	    if (lens[i] > lensExtent[0] && lens[i] < lensExtent[1]) {
-		allData[j].freq[i] = 0;
-            }
-	    else {
-		allData[j].freq[i] = allData[j].rawFreq[i];
-	    }
-	}
+function initializePlotPlot() {
+    // line up the state flux with the map
+    //
+    // first, create a json so I can lookup the values for each state
+    state_json_json = {};
+    for (var i=0; i<49; i++) {
+	state_json_json[stateFeatures[i].properties.name] = stateFeatures[i];
     }
-    // refill the avhapps value in the main data
-
-    // reset
-    for (var j=0; j<allData.length; j++) {
-	for (var i=0; i<allData[j].rawFreq.length; i++) {
-	    var include = true;
-	    // check if in removed word list
-	    for (var k=0; k<ignoreWords.length; k++) {
-		if (ignoreWords[k] == words[i]) {
-		    include = false;
-		    //console.log("ignored "+ignoreWords[k]);
-		}
-	    }
-	    // check if underneath lens cover
-	    if (lens[i] > lensExtent[0] && lens[i] < lensExtent[1]) {
-		include = false;
-	    }
-	    // include it, or set to 0
-	    if (include) {
-		allData[j].freq[i] = allData[j].rawFreq[i];
-	    }
-	    else { allData[j].freq[i] = 0; }
-	    
-	}
+    // save the sorted values in this
+    sorted_state_json = Array(49);
+    // loop through the map titles, and add them in that order to the above array
+    for (var i=0; i<49; i++) {
+	sorted_state_json[i] = state_json_json[stateFlux[i][0]];
     }
 
-    hedotools.computeHapps.go();
+    // make this the new one
+    // stateFeatures = sorted_state_json;
+    
+    plotBarChart(d3.select("#bars01"),stateFlux.map(function(d) { return d[1]; }),sorted_state_json);
+    // drap the map
+    drawMap(d3.select("#map01"),stateFlux.map(function(d) { return d[1]; }),sorted_state_json);
+    allUSfood = stateFood.map(function(d) { return d3.sum(d); });
+    allUSact = stateAct.map(function(d) { return d3.sum(d); });
 
-    // draw the map
-    hedotools.map.setfigure(d3.select('#map01')).setdata(geoJson).plot();
-
-    // sortStates(d3.select('#table01'))
-
-    // compute the shift initially
-    hedotools.shifter.shift(allData[shiftRef].freq,allData[shiftComp].freq,lens,words);
-    var happysad = hedotools.shifter._compH() > hedotools.shifter._refH() ? "happier" : "less happy";
-    hedotools.shifter.setfigure(d3.select('#shift01')).setText(["Why "+allData[shiftComp].name+" is "+happysad+" than "+allData[shiftRef].name+":"]).plot();
-
-    var stateHappsListNorm = Array(51);
-    for (var i=0; i<stateHappsListNorm.length; i++) {
-	stateHappsListNorm[i] = allData[i].avhapps-allData[51].avhapps;
+    i = state_decoder().cached;
+    shiftComp = i;
+    shiftCompName = sorted_state_json[i].properties.name;
+    
+    d3.selectAll("."+shiftCompName[0]+shiftCompName.split(" ")[shiftCompName.split(" ").length-1]).attr("fill","red");
+    
+    if (shiftCompName === "District of Columbia") {
+	shiftCompName = "DC";
     }
+    console.log(shiftCompName);
 
-    hedotools.barchart.setfigure(d3.select("#barChart")).setdata(stateHappsListNorm,stateFeatures).plot();
-
-    var stateHappsList = Array(51);
-    for (var i=0; i<stateHappsList.length; i++) {
-	stateHappsList[i] = allData[i].avhapps;
+    hedotools.shifter._words(foodNames);
+    hedotools.shifter._lens(foodCals);
+    hedotools.shifter._refF(allUSfood);
+    // computeFoodRanks()    
+    foodRanks = [38, 10, 36, 21, 1, 24, 16, 3, 8, 14, 22, 15, 41, 42, 39, 43, 35, 0, 6, 11, 34, 5, 33, 9, 44, 32, 7, 2, 30, 31, 12, 29, 46, 45, 40, 13, 27, 18, 26, 48, 20, 37, 25, 28, 17, 19, 47, 4, 23];
+    hedotools.shifter.setfigure(d3.select("#shift01"));
+    hedotools.shifter._split_top_strings(false);
+    hedotools.shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
+    hedotools.shifter.setTextBold(1);
+    hedotools.shifter.shifter();
+    var refH = hedotools.shifter._refH();
+    var compH = hedotools.shifter._compH();
+    if (compH >= refH) {
+	var happysad = " consumes more calories on average:";
     }
-    // randomHapps = stateHappsList.map(function(d) { return d+(Math.random()-0.5)/5; } )
-    // the previous week
-    var time = "2014-08-18-week"
-    d3.text("http://hedonometer.org/data/geodata/combined-word-vectors/"+(time)+".csv", function(text) {
-	var tmp = text.split("\n");
-	var allDataOld = Array(52);
-	for (var i=0; i<51; i++) {
-	    allDataOld[i] = {name: allStateNames[i],
-			  rawFreq: tmp[i].split(",").map(parseFloat),
-			  freq: tmp[i].split(",")};
+    else { 
+	var happysad = " consumes less calories on average:";
+    }
+    var sumtextarray = ["","",""];
+    sumtextarray[0] = function() {
+	if (Math.abs(refH-compH) < 0.01) {
+	    return "How the food phrases of the whole US and "+shiftCompName+" differ";
 	}
-	// initialize the all data
-	allDataOld[51] = {name: allStateNames[51],
-		       rawFreq: Array(allDataOld[0].freq.length),
-		       freq: Array(allDataOld[0].freq.length),};
-	for (var j=0; j<allDataOld[0].freq.length; j++) {
-	    allDataOld[51].rawFreq[j] = 0.0;
+	else {
+	    return "Why "+shiftCompName+happysad;
 	}
-	for (var i=0; i<51; i++) {
-	    for (var j=0; j<allDataOld[0].freq.length; j++) {
-		allDataOld[51].rawFreq[j] += parseFloat(allDataOld[i].rawFreq[j]);
-	    }
-	}
+    }();
+    sumtextarray[1] = function() {
+	return "Average US calories = " + (refH.toFixed(2));
+    }();
+    sumtextarray[2] = function() {
+	return shiftCompName+" calories = " + (compH.toFixed(2)) + " (Rank " + (foodRanks[shiftComp]+1) + " out of 49)";
+    }();
 	
-	// this is computeHapps() with allData -> allDataOld
-	for (var j=0; j<52; j++) {
-	    // compute total frequency
-	    var N = 0.0;
-	    for (var i=0; i<allDataOld[j].freq.length; i++) {
-		N += parseFloat(allDataOld[j].freq[i]);
-	    }
-	    var happs = 0.0;
-	    for (var i=0; i<allDataOld[j].freq.length; i++) {
-		happs += parseFloat(allDataOld[j].freq[i])*parseFloat(lens[i]);
-	    }
-	    allDataOld[j].avhapps = happs/N;
-	}
-	var stateHappsListOld = Array(51);
-	for (var i=0; i<stateHappsListOld.length; i++) {
-	    stateHappsListOld[i] = allDataOld[i].avhapps;
-	}
+    hedotools.shifter.setText(sumtextarray);
+    // console.log(sumtextarray);
+    hedotools.shifter._xlabel_text("Per food phrase caloric shift");
+    hedotools.shifter._ylabel_text("Food rank");
+    hedotools.shifter.show_x_axis(true);
+    hedotools.shifter.plot();
 
-	// plotSankey(d3.select("#sankeyChart"),stateHappsListOld,stateHappsList,stateFeatures);	
-    });
+    hedotools.shifterTwo._words(actNames);
+    hedotools.shifterTwo._lens(actCals);
+    hedotools.shifterTwo._refF(allUSact);
+    // computeActivityRanks();
+    activityRanks = [43, 17, 45, 9, 1, 32, 46, 28, 25, 42, 18, 30, 26, 8, 21, 36, 47, 13, 44, 23, 41, 7, 48, 27, 4, 11, 24, 14, 35, 16, 10, 38, 15, 31, 19, 5, 33, 22, 39, 6, 37, 34, 3, 2, 29, 12, 40, 20, 0];
+    hedotools.shifterTwo._split_top_strings(false);
+    hedotools.shifterTwo._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));
+    hedotools.shifterTwo.shifter();
+    var refH = hedotools.shifterTwo._refH();
+    var compH = hedotools.shifterTwo._compH();
+    if (compH >= refH) {
+	var happysad = " expends more calories on average:";
+    }
+    else {
+	var happysad = " expends fewer calories on average:";
+    }
+    var sumtextarray = ["","",""];
+    sumtextarray[0] = function() {
+	if (Math.abs(refH-compH) < 0.01) {
+	    return "How the activity phrases of the whole US and "+shiftCompName+" differ";
+	}
+	else {
+	    return "Why "+shiftCompName+happysad;
+	}
+    }();
+    sumtextarray[1] = function() {
+	return "Average US caloric expenditure = " + (refH.toFixed(2));
+    }();
+    sumtextarray[2] = function() {
+	return shiftCompName+" caloric expenditure = " + (compH.toFixed(2)) + " (Rank " + (activityRanks[shiftComp]+1) + " out of 49)";
+    }();
+    hedotools.shifterTwo.setTextBold(1);
+    // hedotools.shifterTwo.setWidth(modalwidth);
+    hedotools.shifterTwo.setText(sumtextarray);
+    hedotools.shifterTwo._xlabel_text("Per activity phrase caloric expenditure shift");
+    hedotools.shifterTwo._ylabel_text("Activity rank");
+    hedotools.shifterTwo.show_x_axis(true);    
+    hedotools.shifterTwo.setfigure(d3.select("#shift02"));
+    hedotools.shifterTwo.plot();
 };
 
 initializePlot();
 
+function computeFoodRanks() {
+    foodScores = Array(49);
+    for (var shiftComp=0; shiftComp<49; shiftComp++) {
+	hedotools.shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
+	hedotools.shifter.shifter();
+	var compH = hedotools.shifter._compH();
+	foodScores[shiftComp] = compH;
+    }
+    // do the sorting
+    indices = Array(foodScores.length);
+    for (var i = 0; i < foodScores.length; i++) { indices[i] = i; }
+    indices.sort(function(a,b) { return foodScores[b] < foodScores[a] ? 1 : foodScores[b] > foodScores[a] ? -1 : 0; });
 
+    foodRanks = Array(foodScores.length);
+    for (var i = 0; i < foodScores.length; i++) {
+	foodRanks[indices[i]] = i;
+    }
+    // return foodRanks;
+}
+
+function computeActivityRanks() {
+    activityScores = Array(49);
+    for (var shiftComp=0; shiftComp<49; shiftComp++) {
+	hedotools.shifterTwo._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));	
+	hedotools.shifterTwo.shifter();
+	var compH = hedotools.shifterTwo._compH();
+	activityScores[shiftComp] = compH;
+    }
+
+    // do the sorting
+    indices = Array(activityScores.length);
+    for (var i = 0; i < activityScores.length; i++) { indices[i] = i; }
+    indices.sort(function(a,b) { return activityScores[a] < activityScores[b] ? 1 : activityScores[a] > activityScores[b] ? -1 : 0; });
+
+    activityRanks = Array(activityScores.length);
+    for (var i = 0; i < activityScores.length; i++) {
+	activityRanks[indices[i]] = i;
+    }
+    // return activityRanks;    
+}
 

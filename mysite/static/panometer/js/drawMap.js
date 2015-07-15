@@ -1,4 +1,4 @@
-function drawMap(figure) {
+function drawMap(figure,data,sorted_json) {
     /* 
        plot the state map!
 
@@ -9,199 +9,30 @@ function drawMap(figure) {
     */
 
     //Width and height
-    var w = parseInt(figure.style('width')),
-    h = w*650/900;
+    var w = parseInt(d3.select('#map01').style('width'));
+    var h = w*.9;
 
-    // remove an old figure if it exists
-    figure.select(".canvas").remove();
+    // mean 0 the data
+    data = data.map(function(d) { return d-d3.mean(data); });
 
-    //Create SVG element
-    var canvas = figure
-	.append("svg")
-	.attr("class", "map canvas")
-	.attr("width", w)
-	.attr("height", h);
+    // //Define map projection
+    // var projection = d3.geo.albersUsa()
+    // 	.translate([w/2, h/2])
+    // 	.scale(w*1.3);
 
-    var selarray = [false,true],
-    selstrings = ["Reference","Comparison"],
-    selstringslen = selstrings.map(function(d) { return d.width(); }),
-    initialpadding = 5,
-    boxpadding = 5,
-    fullselboxwidth = selarray.length*boxpadding*2-boxpadding+initialpadding+d3.sum(selstringslen);
-
-    var legendscale = d3.scale.linear()
-        .domain([340,730])
-        .range([0,1]);
-
-    function makeSelector() {
-
-    canvas.append("text")
-	.attr({
-	    "x": (w-70-fullselboxwidth-56),
-	    "y": 54,
-	    "fill": "grey",
-	    })
-	.text("Selecting ");
-
-	var selgroup = canvas.append("g")
-	    .attr({"class": "selgroup",
-		   "transform": "translate("+(w-70-fullselboxwidth)+","+40+")",});
-
-	selgroup.append("rect")
-	    .attr({"class": "selbox",
-		   "x": 0,
-		   "y": 0,
-		   "rx": 3,
-		   "ry": 3,
-		   "width": fullselboxwidth,
-		   "height": 19,
-		   "fill": "#F8F8F8",
-		   'stroke-width': '0.5',
-		   'stroke': 'rgb(0,0,0)'});
-	
-	selgroup.selectAll("rect.colorclick")
-    	    .data(selarray)
-    	    .enter()
-    	    .append("rect")
-    	    .attr({"class": function(d,i) { return "colorclick "+intStr[i]; },
-    		   "x": function(d,i) { if (i === 0) { return 0; }
-					else { return d3.sum(selstringslen.slice(0,i))+i*boxpadding+(i-1)*boxpadding+initialpadding; } },
-    		   "y": 0,
-		   "rx": 3,
-		   "ry": 3,
-    		   "width": function(d,i) { if (i === 0) { return selstringslen[i]+initialpadding+boxpadding; } else { return selstringslen[i]+boxpadding*2; }},
-    		   "height": 19,
-    		   "fill": "#F8F8F8", //http://www.w3schools.com/html/html_colors.asp
-		   'stroke-width': '0.5',
-		   'stroke': 'rgb(0,0,0)'});
-
-	selgroup.selectAll("text")
-    	    .data(selstrings)
-    	    .enter()
-    	    .append("text")
-    	    .attr({ "x": function(d,i) { 
-		// start at 2
-		if (i==0) { return initialpadding; }
-		// then use 2+width+10+width+10+width...
-		// for default padding of 5 on L/R
-		else { return d3.sum(selstringslen.slice(0,i))+initialpadding+i*boxpadding*2; } },
-    		    "y": 14, 
-    		    "class": function(d,i) { return "seltext "+intStr[i]; },
-		  })
-    	    .text(function(d,i) { return d; });
-
-	selgroup.selectAll("rect.selclick")
-    	    .data(selarray)
-    	    .enter()
-    	    .append("rect")
-    	    .attr({"class": "selrect",
-    		   "x": function(d,i) { if (i === 0) { return 0; }
-					else { return d3.sum(selstringslen.slice(0,i))+i*boxpadding+(i-1)*boxpadding+initialpadding; } },
-    		   "y": 0,
-    		   "width": function(d,i) { if (i === 0) { return selstringslen[i]+initialpadding+boxpadding; } else { return selstringslen[i]+boxpadding*2; }},
-    		   "height": 19,
-    		   "fill": "white", //http://www.w3schools.com/html/html_colors.asp
-    		   "opacity": "0.0",})
-    	    .on("mousedown", function(d,i) {
-		if (stateSelType !== d) {
-		    stateSelType = d;
-		    activeHover = true;
-		    d3.selectAll("text.seltext").attr("fill","black")
-		    d3.select("text.seltext."+intStr[i]).attr("fill","white")
-		    d3.selectAll("rect.colorclick").attr("fill","#F8F8F8").attr("stroke","rgb(0,0,0)")
-		    d3.select("rect.colorclick."+intStr[i]).attr("fill","#428bca").attr("stroke","#428bca"); 
-		    d3.select(".selbutton.one").attr("class","btn btn-default btn-xs pull-right selbutton one");
-		    d3.select(".selbutton.two").attr("class","btn btn-default btn-xs pull-right selbutton two");
-		    d3.select(".selbutton."+intStr[i]).attr("class","btn btn-primary btn-xs pull-right selbutton "+intStr[i]);
-		    d3.selectAll(".state").attr("stroke-width",0.7);
-		}
-    	    });
-
-	selgroup.selectAll("line")
-    	    .data(selstrings.slice(0,selstrings.length-1))
-    	    .enter()
-    	    .append("line")
-    	    .attr("stroke","grey")
-    	    .attr("stroke-width","2")
-    	    .attr("x1", function(d,i) { 
-		return d3.sum(selstringslen.slice(0,i+1))+i*boxpadding+(i+1)*boxpadding+initialpadding;
-	    })
-    	    .attr("x2", function(d,i) { 
-		return d3.sum(selstringslen.slice(0,i+1))+i*boxpadding+(i+1)*boxpadding+initialpadding;
-	    })
-    	    .attr("y1", 0)
-    	    .attr("y2", 19); 
-
-	if (stateSelType) {
-	    var i = 1; 
-	}
-	else { 
-	    var i = 0; 
-	}
-
-	d3.selectAll("text.seltext").attr("fill","black")
-	d3.select("text.seltext."+intStr[i]).attr("fill","white")
-	d3.selectAll("rect.colorclick").attr("fill","#F8F8F8").attr("stroke","rgb(0,0,0)")
-	d3.select("rect.colorclick."+intStr[i]).attr("fill","#428bca").attr("stroke","#428bca");
-
-    }
-
-    function makeLegend(legendwidth,legendheight,textsize) { 
-
-    var legendarray = [0,1,2,3,4,5,6],
-    legendstringslen = [legendwidth,legendwidth,legendwidth,legendwidth,legendwidth,legendwidth,legendwidth,],
-    initialpadding = 0,
-    boxpadding = 0.25,
-    fulllegendboxwidth = legendarray.length*boxpadding*2-boxpadding+initialpadding+d3.sum(legendstringslen);
-
-    var legendgroup = canvas.append("g")
-	.attr({"class": "legendgroup",
-	       "transform": "translate("+(w-50-fulllegendboxwidth)+","+(h-legendheight-legendheight-2)+")",});
-
-    legendgroup.selectAll("rect.legendrect")
-    	.data(legendarray)
-    	.enter()
-    	.append("rect")
-    	.attr({"class": function(d,i) { return "q"+i+"-8"; },
-    	       "x": function(d,i) { if (i === 0) { return 0; }
-	    else { return d3.sum(legendstringslen.slice(0,i))+i*boxpadding+(i-1)*boxpadding+initialpadding; } },
-    	       "y": 0,
-	       // "rx": 3,
-	       // "ry": 3,
-    	       "width": function(d,i) { return legendstringslen[i]; },
-    	       "height": legendheight,
-	       'stroke-width': '1',
-	       'stroke': 'rgb(0,0,0)'});
-
-    legendgroup.selectAll("text.legendtext")
-	.data(["less happy","happier"])
-	.enter()
-        .append("text")
-	.attr({"x": function(d,i) {
-	    if (i==0) { return 0; }
-	    else { return fulllegendboxwidth-d.width(textsize+"px arial"); } },
-    	       "y": legendheight+legendheight, 
-    	       "class": function(d,i) { return "legendtext"; },
-	       "font-size": textsize+"px",
-	      })
-    	.text(function(d,i) { return d; });
-    }
-
-    var scaleFactor = legendscale(w);
-
-    makeLegend((20+10*scaleFactor),(8+5*scaleFactor),(9+3*scaleFactor));
-
-    //Define map projection
-    var projection = d3.geo.albersUsa()
-	.translate([w/2, h/2])
-	.scale(w*1.3);
-	//.scale(1000);
+    var projection = d3.geo.equirectangular()
+    // .translate([.01,0])
+    // these work for col-sm-5
+    // .center([-87,38])
+    // .scale(1650);
+    	.center([-84.7,36.6])
+    	.scale(1560);
 
     //Define path generator
     var path = d3.geo.path()
 	.projection(projection);
 
-    var numColors = 20,
+    var numColors = 100,
         hueRange = [240,60], // in degrees
         // see http://hslpicker.com/#ffd900
         saturation = 1, // full
@@ -215,292 +46,202 @@ function drawMap(figure) {
     // console.log(colors);
     // console.log(colorStrings);
     
-    
     //Define quantize scale to sort data values into buckets of color
     color = d3.scale.quantize()
 	//.range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
         .range(colorStrings)
-	.domain([
-	    d3.min(allData, function(d) { return d.avhapps; }), 
-	    d3.max(allData, function(d) { return d.avhapps; })
-	]);
-
-    classColor = d3.scale.quantize()
-        .range([0,1,2,3,4,5,6])
-	.domain([50,1]);
+	.domain([d3.min(data),d3.max(data)]);
     //Colors taken from colorbrewer.js, included in the D3 download
 
-    // do the sorting
-    indices = Array(allData.length-1);
-    for (var i = 0; i < allData.length-1; i++) { indices[i] = i; }
-    indices.sort(function(a,b) { return Math.abs(allData[a].avhapps) < Math.abs(allData[b].avhapps) ? 1 : Math.abs(allData[a].avhapps) > Math.abs(allData[b].avhapps) ? -1 : 0; });
-    sortedStates = Array(allData.length-1);
-    for (var i = 0; i < allData.length-1; i++) { sortedStates[i] = [i,indices[i],allStateNames[indices[i]]]; }
-    // console.log(sortedStates);
-    sortedStateList = Array(allData.length);
-    for (var i = 0; i < allData.length; i++) { sortedStateList[indices[i]] = i+1; }
+    // remove an old figure if it exists
+    figure.select(".canvas").remove();
 
-    stateFeatures = topojson.feature(geoJson,geoJson.objects.states).features;
+    //Create SVG element
+    var canvas = figure
+	.append("svg")
+    	.attr("id","mapsvg")    
+	.attr("class", "canvas")
+	.attr("width", w)
+	.attr("height", h);
 
     //Bind data and create one path per GeoJSON feature
     var states = canvas.selectAll("path")
-	.data(stateFeatures);
+	.data(sorted_json);
+
+    var state_text = canvas.selectAll("text")
+	.data(sorted_json);
+
+    var qcolor = d3.scale.quantize()
+	.domain(d3.extent(data))
+	// .range([0,1,2,3,4,5,6,7,8]);
+	.range(["#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b",]);
     
     states.enter()
 	.append("path")
 	.attr("d", function(d,i) { return path(d.geometry); } )
 	.attr("id", function(d,i) { return d.properties.name; } )
-	.attr("class",function(d,i) { return "state map "+d.properties.name[0]+d.properties.name.split(" ")[d.properties.name.split(" ").length-1]+" "+"q"+classColor(sortedStateList[i])+"-8"; } )
-        .on("mousedown",state_clicked)
-        .on("mouseover",state_hover)
+    // .attr("class",function(d,i) { return "state map "+d.properties.name[0]+d.properties.name.split(" ")[d.properties.name.split(" ").length-1]+" q9-"+qcolor(data[i]); } )
+	.attr("class",function(d,i) { return "state map "+d.properties.name[0]+d.properties.name.split(" ")[d.properties.name.split(" ").length-1]; } )
+	.attr("fill",function(d,i) { return qcolor(data[i]); })
+        //.on("mousedown",state_clicked)
+        //.on("mouseover",function(d,i) { console.log(d.properties.name); } );
+	.on("mouseover",state_hover)
         .on("mouseout",state_unhover);
 
     states.exit().remove();
 
     states
 	.attr("stroke","black")
-	.attr("stroke-width",".7");
+	.attr("stroke-width","1");
+
+
+    state_text.enter()
+	.append("text")
+    // .attr("transform", function(d,i) { return "translate("+(path.centroid(d.geometry)[0]-9)+","+(path.centroid(d.geometry)[1]+5)+")"; } )
+	.attr("x", function(d,i) { return path.centroid(d.geometry)[0]; })
+    	.attr("y", function(d,i) { return path.centroid(d.geometry)[1]; })
+	.style({
+	    "text-anchor": "middle",
+	    "dominant-baseline": "middle",
+	})
+	.attr("class","statetext")
+	.text(function(d,i) { return d.properties.abbr; } )
+    	.on("mouseover",state_hover)
+        .on("mouseout",state_unhover);
 
     function state_clicked(d,i) { 
 	// next line verifies that the data and json line up
-	// console.log(d.properties.name); console.log(allData[i].name);
+	// console.log(d.properties.name); console.log(allData[i].name); 
 
-	if (activeHover) { 
-	    // stop hovering
-	    activeHover = false;
-	    // remove the color
-	    d3.selectAll(".state").style("fill",null);
-	    if (stateSelType) {
-		// select the comparison
-		d3.selectAll(".state."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1])
-		    .attr("stroke-width",3);
-	    }
-	    else {
-		// toggle the reference
-		d3.selectAll(".state."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1])
-		    .attr("stroke-width",3);
-	    }
+	// toggle the reference
+	if (shiftRef !== i) {
+	    //console.log("reference "+allData[i].name);
+	    shiftRef = i;
+	    d3.selectAll(".state").attr("stroke","none");
+	    d3.selectAll(".state."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1]).attr("stroke","black")
+	        .attr("stroke-width",3);
 	}
-	else {
-	    activeHover = true;
-	    d3.selectAll(".state").attr("stroke-width",0.7);
+	else { 
+	    //console.log("reference everything");
+	    shiftRef = 51;
+	    d3.selectAll(".state").attr("stroke","none");
+	        //.attr("stroke-width",3);
 	}
-
-	//.text("Average Happiness h").append("tspan").attr("baseline-shift","sub").text("avg");
-
 	
-
-	// if (shiftRef !== i) {
-	//     //console.log("reference "+allData[i].name);
-	//     shiftRef = i;
-	//     d3.selectAll(".state.map").attr("stroke-width",".7");
-	//     d3.selectAll(".state.list").attr("stroke","none");
-	//     d3.selectAll(".state."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1])
-	// 	.attr("stroke-width",3);
-	// }
-	// else { 
-	//     //console.log("reference everything");
-	//     shiftRef = 51;
-	//     d3.selectAll(".state.map").attr("stroke-width","0.7");
-	//     d3.selectAll(".state.list").attr("stroke","none");
-	//         //.attr("stroke-width",3);
-	// }
-	
-	// if (shiftRef !== shiftComp) {
-	//     shiftObj = shift(allData[shiftRef].freq,allData[shiftComp].freq,lens,words);
-	//     plotShift(d3.select('#shift01'),shiftObj.sortedMag.slice(0,200),
-	// 	      shiftObj.sortedType.slice(0,200),
-	// 	      shiftObj.sortedWords.slice(0,200),
-	// 	      shiftObj.sumTypes,
-	// 	      shiftObj.refH,
-	// 	      shiftObj.compH);
-	// }
+	if (shiftRef !== shiftComp) {
+	    shiftObj = shift(allData[shiftRef].freq,allData[shiftComp].freq,lens,words);
+	    plotShift(d3.select('#shift01'),shiftObj.sortedMag.slice(0,200),
+		      shiftObj.sortedType.slice(0,200),
+		      shiftObj.sortedWords.slice(0,200),
+		      shiftObj.sumTypes,
+		      shiftObj.refH,
+		      shiftObj.compH,shift_height);
+	}
     }
 
-    function state_hover(d,i) { 
-	var bbox = this.getBBox(); 
-	var x = Math.floor(bbox.x + bbox.width/2.0); 
-	var y = Math.floor(bbox.y + bbox.height/2.0);
-	// console.log(x);
-	// console.log(y);
+    function state_hover(d,i) {
+	// console.log("from the map:");
+	// console.log(i);
 
-	var wordsstring = "Words Used: "+commaSeparateNumber(d3.sum(allData[i].freq)),// +"/"+commaSeparateNumber(d3.sum(allData[i].rawFreq)),
-	wordsstring2 = "Total Words: "+commaSeparateNumber(d3.sum(allData[i].rawFreq)),
-	USwordsstring = "US Words Used: "+commaSeparateNumber(d3.sum(allData[51].freq)),// +"/"+commaSeparateNumber(d3.sum(allData[i].rawFreq)),
-	USwordsstring2 = "US Total Words: "+commaSeparateNumber(d3.sum(allData[51].rawFreq)),
-	happsstring = "Average Happiness: "+allData[i].avhapps.toFixed(2)
-	//hoverboxheight = 115,
-	hoverboxheight = 125+51,
-	hoverboxwidth = d3.max([wordsstring.width('13px arial'),happsstring.width('15px arial'),wordsstring2.width('13px arial'),USwordsstring.width('13px arial'),USwordsstring2.width('13px arial')])+20,
-	hoverboxxoffset = 60;
+	d3.selectAll("rect.staterect")
+    	    .attr("fill",function(d,i) { return qcolor(d[3]); });
+
+	canvas.selectAll("path.state")
+	    .attr("fill",function(d,i) { return qcolor(data[i]); });
+
+	d3.selectAll("."+d.properties.name[0]+d.properties.name.split(" ")[d.properties.name.split(" ").length-1]).attr("fill","red");
 	
-	// if it would wrap it over, move it to the left side
-	if ((x+hoverboxwidth+hoverboxxoffset)>w) {
-	    hoverboxxoffset = -hoverboxxoffset-hoverboxwidth;
+	// d3.select(this).attr("fill","red");
+
+	state_encoder.varval(i.toFixed(0));
+	// shiftCompName = sortedStates[i][2];
+	shiftComp = i;
+	shiftCompName = d.properties.name;
+
+	if (shiftCompName === "District of Columbia") {
+	    shiftCompName = "DC";
 	}
+	// console.log(shiftCompName);
 	
-	var hovergroup = canvas.append("g").attr({
-	    "class": "hoverinfogroup",
-	    "transform": "translate("+(x+hoverboxxoffset)+","+(y-hoverboxheight/2)+")",	    });
-
-	var hoverbox = hovergroup.append("rect").attr({
-	    "class": "hoverinfobox",
-	    "x": 0,
-	    "y": 0,
-	    "width": hoverboxwidth,
-	    "height": hoverboxheight,
-	    "fill": "white",
-	    "stroke": "black",
-	    });
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    "y": 15,
-	    "font-size": 15,
-	    })
-	    .text(allData[i].name);
-
-	hovergroup.append("line").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    "y": 15,
-	    "font-size": 15,
-	    })
-	    .text(allData[i].name);
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    //"y": 55,
-	    "y": 38,
-	    "font-size": 17,
-	    })
-	    .text("Rank:"); // +"/51");
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 59,
-	    "y": 55,
-	    "font-size": 40,
-	    })
-	    .text(sortedStateList[i]); // +"/51");
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 105,
-	    "y": 56,
-	    "font-size": 20,
-	    })
-	    .text("out of 51");
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    //"y": 73,
-	    "y": 79,
-	    "font-size": 15,
-	    })
-	    .text(happsstring);
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    //"y": 89,
-	    "y": 97,
-	    "font-size": 13,
-	    })
-	    .text(wordsstring);
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    //"y": 106,
-	    "y": 114,
-	    "font-size": 13,
-	    })
-	    .text(wordsstring2);
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    //"y": 106,
-	    "y": 131,
-	    "font-size": 13,
-	    })
-	    .text("US Average Happiness: "+allData[51].avhapps.toFixed(2));
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    //"y": 89,
-	    "y": 97+51,
-	    "font-size": 13,
-	    })
-	    .text(USwordsstring);
-
-	hovergroup.append("text").attr({
-	    "class": "hoverinfotext",
-	    "x": 10,
-	    //"y": 106,
-	    "y": 114+51,
-	    "font-size": 13,
-	    })
-	    .text(USwordsstring2);
-
-	if (activeHover) {
-	    if (stateSelType) {
-		shiftComp = i;
-		d3.select(".complabel").text(allData[i].name);
-		compencoder.varval(allData[i].name);
+	hedotools.shifter._refF(allUSfood);
+	hedotools.shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
+	hedotools.shifter.shifter();
+	var refH = hedotools.shifter._refH();
+	var compH = hedotools.shifter._compH();
+	if (compH >= refH) {
+	    var happysad = " consumes more calories on average:";
+	}
+	else { 
+	    var happysad = " consumes less calories on average:";
+	}
+	var sumtextarray = ["","",""];
+	sumtextarray[0] = function() {
+	    if (Math.abs(refH-compH) < 0.01) {
+		return "How the food phrases of the whole US and "+shiftCompName+" differ";
 	    }
 	    else {
-		shiftRef = i;
-		d3.select(".reflabel").text(allData[i].name);
-		refencoder.varval(allData[i].name);
+		return "Why "+shiftCompName+happysad;		
 	    }
+	}();
+	sumtextarray[1] = function() {
+	    return "Average US calories = " + (refH.toFixed(2));
+	}();
+	sumtextarray[2] = function() {
+	    return shiftCompName+" calories = " + (compH.toFixed(2)) + " (Rank " + (foodRanks[shiftComp]+1) + " out of 49)";
+	}();
+	
+	hedotools.shifter.setText(sumtextarray);
+	hedotools.shifter.replot();
 
-	    // next line verifies that the data and json line up
-	    // console.log(d.properties.name); console.log(allData[i].name.split(" ")[allData[i].name.split(" ").length-1]); 
-	    d3.selectAll(".state."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1]).style("fill","#428bca");
-
-	    if (shiftRef !== shiftComp) {
-		shiftObj = shift(allData[shiftRef].freq,allData[shiftComp].freq,lens,words);
-		plotShift(d3.select('#shift01'),shiftObj.sortedMag.slice(0,200),
-			  shiftObj.sortedType.slice(0,200),
-			  shiftObj.sortedWords.slice(0,200),
-			  shiftObj.sumTypes,
-			  shiftObj.refH,
-			  shiftObj.compH);
-	    }
+	hedotools.shifterTwo._refF(allUSact);
+	hedotools.shifterTwo._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));
+	hedotools.shifterTwo.shifter();
+	var refH = hedotools.shifterTwo._refH();
+	var compH = hedotools.shifterTwo._compH();
+	if (compH >= refH) {
+	    var happysad = " expends more calories on average:";
 	}
+	else {
+	    var happysad = " expends fewer calories on average:";
+	}	
+	var sumtextarray = ["","",""];
+	sumtextarray[0] = function() {
+	    if (Math.abs(refH-compH) < 0.01) {
+		return "How the activity phrases of the whole US and "+shiftCompName+" differ";
+	    }
+	    else {
+		return "Why "+shiftCompName+happysad;
+	    }
+	}();
+	sumtextarray[1] = function() {
+	    return "Average US caloric expenditure = " + (refH.toFixed(2));
+	}();
+	sumtextarray[2] = function() {
+	    return shiftCompName+" caloric expenditure = " + (compH.toFixed(2)) + " (Rank " + (activityRanks[shiftComp]+1) + " out of 49)";
+	}();
+	// hedotools.shifterTwo.setWidth(modalwidth);
+	hedotools.shifterTwo.setText(sumtextarray);
+	hedotools.shifterTwo.replot();
     }
 
     function state_unhover(d,i) { 
+	// next line verifies that the data and json line up
+	// console.log(d.properties.name); console.log(allData[i].name.split(" ")[allData[i].name.split(" ").length-1]); 
+	shiftComp = i;
+	// console.log(".state.list."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1]);
+	// d3.selectAll(".state.list."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1])
+	//     .attr("fill",color(allData[i].avhapps));
 
-	d3.select(".hoverinfogroup").remove();
-
-	if (activeHover) {
-	    // next line verifies that the data and json line up
-	    // console.log(d.properties.name); console.log(allData[i].name.split(" ")[allData[i].name.split(" ").length-1]); 
-	    // shiftComp = i;
-	    //console.log(".state.list."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1]);
-	    //d3.selectAll(".state.list."+allData[i].name[0]+allData[i].name.split(" ")[allData[i].name.split(" ").length-1])
-		//.style("fill",null);
-	    d3.select(this)
-		.style("fill",null);
-	}
+	// console.log(qcolor(data[i]))
+	// var statecolor = qcolor(data[i]);
+	// console.log(statecolor);
+	// d3.selectAll("."+d.properties.name[0]+d.properties.name.split(" ")[d.properties.name.split(" ").length-1]).attr("fill",function(d,i) { return statecolor; });
+	
+	// d3.select(this)
+        //  .attr("fill", function() {
+    	//      return qcolor(data[i]);
+    	// });
     }
-
-    function resizemap() {
-	w = parseInt(figure.style('width'));
-	h = w*650/900;
-	projection.translate([w/2, h/2]).scale(w*1.3);
-	canvas.selectAll("path").attr("d",path);
-	canvas.attr("width",w).attr("height",h);
-    };
-
-    d3.select(window).on("resize.map",resizemap);
 
 };
 

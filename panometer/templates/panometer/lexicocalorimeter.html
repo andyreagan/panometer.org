@@ -2,11 +2,8 @@
 {% load staticfiles %}
 
 {% block headercss %}
-<link href="{% static "panometer/css/bootstrap.css" %}" rel="stylesheet">
-<link href="{% static "panometer/css/panometer.css" %}" rel="stylesheet">
-{% endblock %}
-
-{% block nav %}
+<link href="{% static "panometer/css/bootstrap.min.css" %}" rel="stylesheet">
+<link href="{% static "panometer/css/site.css" %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -115,3 +112,5 @@
     <script src="{% static "panometer/js/maps-on-load.js" %}" charset="utf-8"></script>
     
 {% endblock %}
+
+

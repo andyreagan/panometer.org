@@ -1,12 +1,12 @@
 // current usage example:
 // (from the sankey page)
 //
-// hedotools.shifter.shift(allDataOld[hedotools.sankey.newindices()[0]].freq,allData[hedotools.sankey.newindices()[0]].freq,lens,words);
-// hedotools.shifter.setfigure(d3.select('#shift01')).setHeight(400).setText("Why "+allDataOld[hedotools.sankey.newindices()[0]].name+" has become "+"happier"+":").plot();
+// hedotools.shifterTwo.shift(allDataOld[hedotools.sankey.newindices()[0]].freq,allData[hedotools.sankey.newindices()[0]].freq,lens,words);
+// hedotools.shifterTwo.setfigure(d3.select('#shift01')).setHeight(400).setText("Why "+allDataOld[hedotools.sankey.newindices()[0]].name+" has become "+"happier"+":").plot();
 //
 // there are two options for having it compute the shift
 // calling the .shift() with four arguments does the trick
-// or calling .shifter() with no arguments also does it
+// or calling .shifterTwo() with no arguments also does it
 // for the latter, need to have defined the variables beforehand
 // using the _lens, _words, etc accessors
 //
@@ -19,7 +19,7 @@
 // can also use the setText method to set the text
 
 // define the shifter module 
-hedotools.shifter = function() 
+hedotools.shifterTwo = function() 
 {
     // for the word type selection
     var shiftselencoder = d3.urllib.encoder().varname("wordtypes");
@@ -44,14 +44,14 @@ hedotools.shifter = function()
 	if (!widthsetexplicitly) {
 	    grabwidth();
 	}
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var split_top_strings = true;
     var _split_top_strings = function(_) {
 	if (!arguments.length) return split_top_strings;	
 	split_top_strings = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var show_x_axis_bool = false;
@@ -60,7 +60,7 @@ hedotools.shifter = function()
 	show_x_axis_bool = _;
 	// give a litter extra space for it
 	axeslabelmargin.bottom = axeslabelmargin.bottom + 10;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var splitstring = function(_,w,f) {
@@ -171,7 +171,7 @@ hedotools.shifter = function()
 	fullheight = _;
 	boxheight = fullheight-margin.top-margin.bottom;
 	figheight = boxheight - axeslabelmargin.top - axeslabelmargin.bottom;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     // will be set by setdata() or shift() functions
@@ -187,64 +187,64 @@ hedotools.shifter = function()
     var _xlabel_text = function(_) {
 	if (!arguments.length) return xlabel_text;
 	xlabel_text = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var ylabel_text = "Word Rank";
     var _ylabel_text = function(_) {
 	if (!arguments.length) return ylabel_text;
 	ylabel_text = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var _sortedMag = function(_) {
 	if (!arguments.length) return sortedMag;
 	sortedMag = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
     var _sortedType = function(_) {
 	if (!arguments.length) return sortedType;
 	sortedType = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
     var _sortedWords = function(_) {
 	if (!arguments.length) return sortedWords;
 	sortedWords = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
     var _sortedWordsEn = function(_) {
 	if (!arguments.length) return sortedWordsEn;
 	sortedWordsEn = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
     var _sumTypes = function(_) {
 	if (!arguments.length) return sumTypes;
 	sumTypes = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
     var _refH = function(_) {
 	if (!arguments.length) return refH;
 	refH = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
     var _compH = function(_) {
 	if (!arguments.length) return compH;
 	compH = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var numBoldLines = 1;
     var setTextBold = function(_) {
 	if (!arguments.length) return numBoldLines;
 	numBoldLines = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var reset = true;
     var _reset = function(_) {
 	if (!arguments.length) return reset;
 	reset = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var resetbuttontoggle = function(_) {
@@ -258,7 +258,7 @@ hedotools.shifter = function()
 	    figure.select("g.help").style("visibility","hidden");
 	    figure.selectAll("text.credit").style("visibility","hidden");	    
 	}
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var setdata = function(a,b,c,d,e,f) {
@@ -270,7 +270,7 @@ hedotools.shifter = function()
 	refH = e;
 	compH = f;
 	loadsremaining = 0;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var colorArray = ["#202020","#D8D8D8","#D8D8D8","#D8D8D8","#D8D8D8"];
@@ -279,13 +279,13 @@ hedotools.shifter = function()
     var setTextColors = function(_) {
 	if (!arguments.length) return colorArray;
 	colorArray = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var setTopTextSizes = function(_) {
 	if (!arguments.length) return topFontSizeArray;
 	topFontSizeArray = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var comparisonText = [""];
@@ -293,7 +293,7 @@ hedotools.shifter = function()
     var setText = function(_) {
 	if (!arguments.length) return _;
 	comparisonText = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var numwordstoplot = 200;
@@ -309,42 +309,42 @@ hedotools.shifter = function()
     var _stoprange = function(_) {
 	if (!arguments.length) return stoprange;
 	stoprange = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var _refF = function(_) {
 	if (!arguments.length) return refF;
 	refF = _;
 	loadsremaining--;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var _compF = function(_) {
 	if (!arguments.length) return compF;
 	compF = _;
 	loadsremaining--;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var _lens = function(_) {
 	if (!arguments.length) return lens;
 	lens = _;
 	loadsremaining--;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var _words = function(_) {
 	if (!arguments.length) return words;
 	words = _;
 	loadsremaining--;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var _words_en = function(_) {
 	if (!arguments.length) return words_en;
 	words_en = _;
 	translate = true;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var ignoreWords = ["nigga","niggas","niggaz","nigger"];
@@ -356,7 +356,7 @@ hedotools.shifter = function()
 	ignoreWords = ignoreWords.concat(_);
 	// console.log(_);
 	// console.log(ignoreWords);
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var stop = function() {
@@ -383,7 +383,7 @@ hedotools.shifter = function()
 		compF[i] = 0;
 	    }
 	}
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     // stop an individual vector
@@ -477,7 +477,7 @@ hedotools.shifter = function()
 	words = d;
 	loadsremaining = 0;
 	shifter();
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
     
     // var sortedMagFull;
@@ -486,7 +486,7 @@ hedotools.shifter = function()
     var plotdist = function(_) {
 	if (!arguments.length) return distflag;
 	distflag = _;
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var selfShifter = function() {
@@ -574,7 +574,7 @@ hedotools.shifter = function()
 	    }   
 	}
 
-	return hedotools.shifter;	
+	return hedotools.shifterTwo;	
     }
 
     var shifter = function() {
@@ -712,7 +712,7 @@ hedotools.shifter = function()
 	// };
 
 	// allow chaining here too
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
 
     var nbins = 100;
@@ -778,7 +778,7 @@ hedotools.shifter = function()
 	// console.log(dist);
 	// console.log(cdist);
 	// console.log(cdist[cdist.length-1]);
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
     }
     
     // declare a boat load of private variables
@@ -875,7 +875,7 @@ hedotools.shifter = function()
 	// made a new svg
 	figure.selectAll("svg").remove();
 	canvas = figure.append("svg")
-	    .attr("id","shiftsvg")
+	    .attr("id","shiftsvg2")
 	    .attr("width",function () { return boxwidth; })
 	    .attr("height",function () { return boxheight; });
 	
@@ -1672,9 +1672,9 @@ hedotools.shifter = function()
 	    translateButton();
 	}
 
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
 
-    }; // hedotools.shifter.plot
+    }; // hedotools.shifterTwo.plot
 
     function resetfun() {
 	// console.log('reset function');
@@ -2088,9 +2088,9 @@ hedotools.shifter = function()
 
 	newLtoptext.transition().attr("x",function(d,i) { return topScale(d)-5; });
 
-	return hedotools.shifter;
+	return hedotools.shifterTwo;
 	
-    }; // hedotools.shifter.replot
+    }; // hedotools.shifterTwo.replot
 
     function resizeshift() {
 	// don't use this function...
@@ -2219,10 +2219,3 @@ hedotools.shifter = function()
 		  }
     return opublic;
 }();
-
-
-
-
-
-
-

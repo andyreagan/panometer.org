@@ -1,12 +1,5 @@
-// /usr/share/nginx/wiki/mysite/mysite/static/hedonometer/js/hedotools.init.js
-
 // namespace it
 var hedotools = hedotools || {};
-
-// use this in both maps and sankey
-var classColor = d3.scale.quantize()
-    .range([0,1,2,3,4,5,6])
-    .domain([50,1]);
 
 // begin with some helper functions
 // http://stackoverflow.com/a/1026087/3780153
@@ -28,6 +21,12 @@ String.prototype.width = function(font) {
     return w;
 }
 
+String.prototype.safe = function() {
+    var tmp = this.split("/")
+    tmp[tmp.length-1] = escape(tmp[tmp.length-1])
+    return tmp.join("/");
+}
+
 // yup
 // http://stackoverflow.com/questions/3883342/add-commas-to-a-number-in-jquery
 function commaSeparateNumber(val){
@@ -37,8 +36,28 @@ function commaSeparateNumber(val){
     return val;
 }
 
+function splitWidth(s,w) {
+    // s is the string
+    // w is the width that we want to split it to
+    var t = s.split(" ");
+    var n = [t[0]];
+    var i = 1;
+    var j = 0;
+    while (i<t.length) {
+	if ((n[j]+t[i]).width() < w) {
+	    n[j] += " "+t[i]
+	}
+	else {
+	    j++;
+	    n.push(t[i]);
+	}
+	i++;
+    }
+    return n;
+}
+
 // look away
 var intStr = ["one","two","three","four"];
-
+var intStr0 = ["zero","one","two","three"];
 
 
