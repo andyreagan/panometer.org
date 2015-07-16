@@ -1,0 +1,69 @@
+{% extends "panometer/base.html" %}
+{% load staticfiles %}
+
+{% block headercss %}
+<link href="{% static "panometer/css/bootstrap.min.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+<link href="{% static "panometer/css/site.css" %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  
+  <div class="row">
+    <p></p>
+  </div> <!-- /.row -->    
+  <div class="row">    
+    <div class="col-xs-6 col-xs-offset-3">	
+
+
+
+    </div> <!-- /.col -->
+    
+	    
+  </div> <!-- /.row -->
+  
+  <div class="row">
+    <div class="col-xs-6 col-xs-offset-0">
+      <br>
+      <br>
+      <br>      
+    <div class="demo">
+      <input id="wordsearch" class="typeahead" type="text" style="margin-left: 5px;" placeholder="bacon">
+      <button class="btn btn-default" type="submit" id="showallmatching">Map all matching</button>
+      <br>
+    </div> <!-- /.demo -->      
+      <div id="map01"></div>
+    </div> <!-- /.col -->
+    <div class="col-xs-6 col-xs-offset-0">
+      <div id="bars01"></div>
+    </div> <!-- /.col -->
+  </div> <!-- /.row -->      
+
+  
+</div><!-- /.container -->
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+{% block bottomjs %}
+
+    <!-- use these for all of the files individually (tad faster developing) -->
+    <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/bootstrap.min.js" %}" charset="utf-8"></script>
+
+    <script src="{% static "panometer/js/typeahead.bundle.js" %}" charset="utf-8"></script>    
+    
+    <script src="{% static "panometer/js/d3.andy.js" %}" charset="utf-8"></script>    
+    <script src="{% static "panometer/js/urllib.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/topojson.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/plotBarChartSearch.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/drawMap.js" %}" charset="utf-8"></script>
+
+    <script src="{% static "panometer/js/lexicocalorimeter-load-files.js" %}" charset="utf-8"></script>    
+    <script src="{% static "panometer/js/lexicocalorimeter-food.js" %}" charset="utf-8"></script>
+    
+{% endblock %}
+
+

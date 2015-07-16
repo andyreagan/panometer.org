@@ -3,8 +3,8 @@
 
 {% block headercss %}
 <link href="{% static "panometer/css/bootstrap.min.css" %}" rel="stylesheet">
-<link href="{% static "panometer/css/site.css" %}" rel="stylesheet">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+<link href="{% static "panometer/css/site.css" %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -110,7 +110,8 @@
     <script src="{% static "panometer/js/drawMap.js" %}" charset="utf-8"></script>
     <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}" charset="utf-8"></script>
     <script src="{% static "panometer/js/bootstrap.min.js" %}" charset="utf-8"></script>
-    <script src="{% static "panometer/js/maps-on-load.js" %}" charset="utf-8"></script>
+    <script src="{% static "panometer/js/lexicocalorimeter-load-files.js" %}" charset="utf-8"></script>    
+    <script src="{% static "panometer/js/lexicocalorimeter-dashboard.js" %}" charset="utf-8"></script>
     
 {% endblock %}
 

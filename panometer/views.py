@@ -21,3 +21,8 @@ def ometer(request,meter):
     template = "panometer/"+meter+".html"
     return render(request, template) # ,{"model": m})
 
+def submeter(request,meter,frame):
+    # m = get_object_or_404(Meter,title=meter)
+    template = "panometer/"+meter+"-"+frame+".html"
+    return render(request, template) # ,{"model": m})    
+

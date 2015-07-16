@@ -1,4 +1,4 @@
-function drawMap(figure,data,sorted_json) {
+function drawMap(figure,data,sorted_json,dashboard,center,scale) {
     /* 
        plot the state map!
 
@@ -13,7 +13,9 @@ function drawMap(figure,data,sorted_json) {
     var h = w*.9;
 
     // mean 0 the data
-    data = data.map(function(d) { return d-d3.mean(data); });
+    // data = data.map(function(d) { return d-d3.mean(data); });
+
+    console.log(data);
 
     // //Define map projection
     // var projection = d3.geo.albersUsa()
@@ -25,8 +27,8 @@ function drawMap(figure,data,sorted_json) {
     // these work for col-sm-5
     // .center([-87,38])
     // .scale(1650);
-    	.center([-84.7,36.6])
-    	.scale(1560);
+    	.center(center)
+    	.scale(scale);
 
     //Define path generator
     var path = d3.geo.path()
@@ -143,85 +145,89 @@ function drawMap(figure,data,sorted_json) {
 	// console.log("from the map:");
 	// console.log(i);
 
-	d3.selectAll("rect.staterect")
-    	    .attr("fill",function(d,i) { return qcolor(d[3]); });
+	if (dashboard) {
 
-	canvas.selectAll("path.state")
-	    .attr("fill",function(d,i) { return qcolor(data[i]); });
+	    d3.selectAll("rect.staterect")
+    		.attr("fill",function(d,i) { return qcolor(d[3]); });
 
-	d3.selectAll("."+d.properties.name[0]+d.properties.name.split(" ")[d.properties.name.split(" ").length-1]).attr("fill","red");
-	
-	// d3.select(this).attr("fill","red");
+	    canvas.selectAll("path.state")
+		.attr("fill",function(d,i) { return qcolor(data[i]); });
 
-	state_encoder.varval(i.toFixed(0));
-	// shiftCompName = sortedStates[i][2];
-	shiftComp = i;
-	shiftCompName = d.properties.name;
+	    d3.selectAll("."+d.properties.name[0]+d.properties.name.split(" ")[d.properties.name.split(" ").length-1]).attr("fill","red");
+	    
+	    // d3.select(this).attr("fill","red");
 
-	if (shiftCompName === "District of Columbia") {
-	    shiftCompName = "DC";
-	}
-	// console.log(shiftCompName);
-	
-	hedotools.shifter._refF(allUSfood);
-	hedotools.shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
-	hedotools.shifter.shifter();
-	var refH = hedotools.shifter._refH();
-	var compH = hedotools.shifter._compH();
-	if (compH >= refH) {
-	    var happysad = " consumes more calories on average:";
-	}
-	else { 
-	    var happysad = " consumes less calories on average:";
-	}
-	var sumtextarray = ["","",""];
-	sumtextarray[0] = function() {
-	    if (Math.abs(refH-compH) < 0.01) {
-		return "How the food phrases of the whole US and "+shiftCompName+" differ";
+	    state_encoder.varval(i.toFixed(0));
+	    // shiftCompName = sortedStates[i][2];
+	    shiftComp = i;
+	    shiftCompName = d.properties.name;
+
+	    if (shiftCompName === "District of Columbia") {
+		shiftCompName = "DC";
+	    }
+	    // console.log(shiftCompName);
+	    
+	    hedotools.shifter._refF(allUSfood);
+	    hedotools.shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
+	    hedotools.shifter.shifter();
+	    var refH = hedotools.shifter._refH();
+	    var compH = hedotools.shifter._compH();
+	    if (compH >= refH) {
+		var happysad = " consumes more calories on average:";
+	    }
+	    else { 
+		var happysad = " consumes less calories on average:";
+	    }
+	    var sumtextarray = ["","",""];
+	    sumtextarray[0] = function() {
+		if (Math.abs(refH-compH) < 0.01) {
+		    return "How the food phrases of the whole US and "+shiftCompName+" differ";
+		}
+		else {
+		    return "Why "+shiftCompName+happysad;		
+		}
+	    }();
+	    sumtextarray[1] = function() {
+		return "Average US calories = " + (refH.toFixed(2));
+	    }();
+	    sumtextarray[2] = function() {
+		return shiftCompName+" calories = " + (compH.toFixed(2)) + " (Rank " + (foodRanks[shiftComp]+1) + " out of 49)";
+	    }();
+	    
+	    hedotools.shifter.setText(sumtextarray);
+	    hedotools.shifter.replot();
+
+	    hedotools.shifterTwo._refF(allUSact);
+	    hedotools.shifterTwo._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));
+	    hedotools.shifterTwo.shifter();
+	    var refH = hedotools.shifterTwo._refH();
+	    var compH = hedotools.shifterTwo._compH();
+	    if (compH >= refH) {
+		var happysad = " expends more calories on average:";
 	    }
 	    else {
-		return "Why "+shiftCompName+happysad;		
-	    }
-	}();
-	sumtextarray[1] = function() {
-	    return "Average US calories = " + (refH.toFixed(2));
-	}();
-	sumtextarray[2] = function() {
-	    return shiftCompName+" calories = " + (compH.toFixed(2)) + " (Rank " + (foodRanks[shiftComp]+1) + " out of 49)";
-	}();
-	
-	hedotools.shifter.setText(sumtextarray);
-	hedotools.shifter.replot();
+		var happysad = " expends fewer calories on average:";
+	    }	
+	    var sumtextarray = ["","",""];
+	    sumtextarray[0] = function() {
+		if (Math.abs(refH-compH) < 0.01) {
+		    return "How the activity phrases of the whole US and "+shiftCompName+" differ";
+		}
+		else {
+		    return "Why "+shiftCompName+happysad;
+		}
+	    }();
+	    sumtextarray[1] = function() {
+		return "Average US caloric expenditure = " + (refH.toFixed(2));
+	    }();
+	    sumtextarray[2] = function() {
+		return shiftCompName+" caloric expenditure = " + (compH.toFixed(2)) + " (Rank " + (activityRanks[shiftComp]+1) + " out of 49)";
+	    }();
+	    // hedotools.shifterTwo.setWidth(modalwidth);
+	    hedotools.shifterTwo.setText(sumtextarray);
+	    hedotools.shifterTwo.replot();
 
-	hedotools.shifterTwo._refF(allUSact);
-	hedotools.shifterTwo._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));
-	hedotools.shifterTwo.shifter();
-	var refH = hedotools.shifterTwo._refH();
-	var compH = hedotools.shifterTwo._compH();
-	if (compH >= refH) {
-	    var happysad = " expends more calories on average:";
 	}
-	else {
-	    var happysad = " expends fewer calories on average:";
-	}	
-	var sumtextarray = ["","",""];
-	sumtextarray[0] = function() {
-	    if (Math.abs(refH-compH) < 0.01) {
-		return "How the activity phrases of the whole US and "+shiftCompName+" differ";
-	    }
-	    else {
-		return "Why "+shiftCompName+happysad;
-	    }
-	}();
-	sumtextarray[1] = function() {
-	    return "Average US caloric expenditure = " + (refH.toFixed(2));
-	}();
-	sumtextarray[2] = function() {
-	    return shiftCompName+" caloric expenditure = " + (compH.toFixed(2)) + " (Rank " + (activityRanks[shiftComp]+1) + " out of 49)";
-	}();
-	// hedotools.shifterTwo.setWidth(modalwidth);
-	hedotools.shifterTwo.setText(sumtextarray);
-	hedotools.shifterTwo.replot();
     }
 
     function state_unhover(d,i) { 
