@@ -157,7 +157,7 @@ function drawMap(figure,data,sorted_json,dashboard,center,scale) {
 	    
 	    // d3.select(this).attr("fill","red");
 
-	    state_encoder.varval(i.toFixed(0));
+	    state_encoder.varval(sorted_state_json[i].properties.abbr);
 	    // shiftCompName = sortedStates[i][2];
 	    shiftComp = i;
 	    shiftCompName = d.properties.name;

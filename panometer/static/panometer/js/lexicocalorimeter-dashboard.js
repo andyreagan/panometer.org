@@ -3,8 +3,24 @@ var num_shift_words = 24;
 var rectHeight = 11;
 var sumRectHeight = 15;
 
-var state_encoder = d3.urllib.encoder().varname("ID");
-var state_decoder = d3.urllib.decoder().varname("ID").varresult(Math.floor(Math.random() * 49));
+var state_encoder = d3.urllib.encoder().varname("state");
+var state_decoder = d3.urllib.decoder().varname("state");
+var year_encoder = d3.urllib.encoder().varname("year").varval("2012");
+var view_decoder = d3.urllib.encoder().varname("view").varval("dashboard");
+var region_decoder = d3.urllib.encoder().varname("region").varval("contiguousUS");
+
+
+function stateLookup(name) {
+    // given a state name, return the ID
+    var ID = -1;
+    for (var i=0; i<sorted_state_json.length; i++) {
+	if ( name === sorted_state_json[i].properties.abbr ) {
+	    ID = i;
+	    break;
+	}
+    }
+    return ID;
+}
 
 function initializePlot() {
     // line up the state flux with the map
@@ -21,6 +37,9 @@ function initializePlot() {
 	sorted_state_json[i] = state_json_json[stateFlux[i][0]];
     }
 
+    var rand_state_id = Math.floor(Math.random() * 49);
+    state_decoder.varresult(sorted_state_json[rand_state_id].properties.abbr);
+
     // make this the new one
     // stateFeatures = sorted_state_json;
     
@@ -30,7 +49,7 @@ function initializePlot() {
     allUSfood = stateFood.map(function(d) { return d3.sum(d); });
     allUSact = stateAct.map(function(d) { return d3.sum(d); });
 
-    i = state_decoder().cached;
+    i = stateLookup(state_decoder().cached);
     shiftComp = i;
     shiftCompName = sorted_state_json[i].properties.name;
     

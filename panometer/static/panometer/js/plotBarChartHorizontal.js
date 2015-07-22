@@ -252,7 +252,7 @@ function plotBarChart(figure,data,geodata) {
 
 	shiftComp = sortedStates[i][1];
 	shiftCompName = sortedStates[i][2];
-	state_encoder.varval(shiftComp.toFixed(0));
+	state_encoder.varval(sorted_state_json[shiftComp].properties.abbr);	
 
 	if (shiftCompName === "District of Columbia") {
 	    shiftCompName = "DC";
