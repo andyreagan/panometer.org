@@ -19,10 +19,10 @@ def dummy(request):
 def ometer(request,meter):
     # m = get_object_or_404(Meter,title=meter)
     template = "panometer/"+meter+".html"
-    return render(request, template) # ,{"model": m})
+    return render(request, template, {"meter": meter, "frame": "dashboard"})
 
 def submeter(request,meter,frame):
     # m = get_object_or_404(Meter,title=meter)
     template = "panometer/"+meter+"-"+frame+".html"
-    return render(request, template) # ,{"model": m})    
+    return render(request, template, {"meter": meter, "frame": frame})    
 

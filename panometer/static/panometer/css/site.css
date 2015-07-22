@@ -185,3 +185,8 @@ table {
 #rtl-support .tt-dropdown-menu {
     text-align: right;
 }
+
+#navtree {
+    padding-left: 15px;
+}
+

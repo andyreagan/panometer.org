@@ -6,6 +6,9 @@ var allEncoder = d3.urllib.encoder().varname("all");
 var state_encoder = d3.urllib.encoder().varname("ID");
 var state_decoder = d3.urllib.decoder().varname("ID").varresult(Math.floor(Math.random() * 49));
 
+var map_location = [-93.1,41.6];
+var map_size = 3000;
+
 var qcolor = d3.scale.quantize()
     .range([0,1,2,3,4,5,6,7,8]);
 
@@ -44,7 +47,7 @@ $(document).ready(function() {
     for (var i=0; i<foodNames.length; i++) {
         if (foodNames[i] === sugg.value) {
 	    console.log(i);
-	    drawMap(d3.select("#map01"),stateFood[i].map(parseFloat).map(function(d,i) { return d/stateFoodTotals[i]; }),sorted_state_json,false,[-90.1,41.6],2200);
+	    drawMap(d3.select("#map01"),stateFood[i].map(parseFloat).map(function(d,i) { return d/stateFoodTotals[i]; }),sorted_state_json,false,map_location,map_size);
 	    plotBarChart(d3.select("#bars01"),stateFood[i].map(parseFloat).map(function(d,i) { return d/stateFoodTotals[i]; }),sorted_state_json,"Fraction of all food phrases");    		
             // drawMap(d3.select("#map01"),stateFood[i].map(parseFloat).map(function(d,i) { return d/stateFoodTotals[i]; }),sorted_state_json,false);
             // plotBarChart(d3.select("#bars01"),stateFood[i].map(parseFloat).map(function(d,i) { return d/stateFoodTotals[i]; }),stateFeatures);
@@ -80,7 +83,7 @@ $("#showallmatching").on("click", function(e) {
 	    } // for
         } //if 
     } // for
-    drawMap(d3.select("#map01"),totalFood,sorted_state_json,false,[-90.1,41.6],2200);
+    drawMap(d3.select("#map01"),totalFood,sorted_state_json,false,map_location,map_size);
     plotBarChart(d3.select("#bars01"),totalFood,sorted_state_json,"Fraction of all food phrases");
 }); 
 
@@ -137,7 +140,7 @@ function initializePlot() {
             } //if 
 	} // for 
     }
-    drawMap(d3.select("#map01"),totalFood,sorted_state_json,false,[-90.1,41.6],2200);
+    drawMap(d3.select("#map01"),totalFood,sorted_state_json,false,map_location,map_size);
     plotBarChart(d3.select("#bars01"),totalFood,sorted_state_json,"Fraction of all food phrases");
 };
 

@@ -7,9 +7,8 @@ function plotBarChart(figure,data,geodata,xlabel) {
            with the names
 
     */
-    var margin = {top: 3, right: 0, bottom: 60, left: 50};
+    var margin = {top: 3, right: 0, bottom: 60, left: 136};
     var figwidth = parseInt(d3.select('#bars01').style('width'));
-    var aspectRatio = 2.5;
     var figheight = 700;
     var width = figwidth-margin.left-margin.right;
     var height = figheight-margin.top-margin.bottom;
@@ -60,7 +59,7 @@ function plotBarChart(figure,data,geodata,xlabel) {
     // x scale, maps all the data to 
     var absDataMax = d3.max([d3.max(data),-d3.min(data)]);
     x = d3.scale.linear()
-	.domain([-absDataMax,absDataMax])
+	.domain([0,absDataMax])
 	.range([5,width-10]);
 
     // linear scale function
@@ -99,22 +98,22 @@ function plotBarChart(figure,data,geodata,xlabel) {
 	    .scale(x)
 	    .orient("bottom"); }
 
-    // axis creation function
-    var create_yAxis = function() {
-	return d3.svg.axis()
-	    .scale(y) //linear scale function
-	    .orient("left"); }
+    // // axis creation function
+    // var create_yAxis = function() {
+    // 	return d3.svg.axis()
+    // 	    .scale(y) //linear scale function
+    // 	    .orient("left"); }
 
-    // draw the axes
-    var yAxis = create_yAxis()
-	.innerTickSize(6)
-	.outerTickSize(0);
+    // // draw the axes
+    // var yAxis = create_yAxis()
+    // 	.innerTickSize(6)
+    // 	.outerTickSize(0);
 
-    axes.append("g")
-	.attr("class", "y axis ")
-	.attr("font-size", "14.0px")
-	.attr("transform", "translate(0,0)")
-	.call(yAxis);
+    // axes.append("g")
+    // 	.attr("class", "y axis ")
+    // 	.attr("font-size", "14.0px")
+    // 	.attr("transform", "translate(0,0)")
+    // 	.call(yAxis);
 
     var xAxis = create_xAxis()
 	.innerTickSize(6)
@@ -143,19 +142,19 @@ function plotBarChart(figure,data,geodata,xlabel) {
     // axes = axes.append("g")
     // 	.attr("clip-path","url(#clip)");
 
-    var ylabel = canvas.append("text")
-	.text("State Rank")
-	.attr("class","axes-text")
-	.attr("x",(figwidth-width)/4)
-	.attr("y",figheight/2+30)
-	.attr("font-size", "16.0px")
-	.attr("fill", "#000000")
-	.attr("transform", "rotate(-90.0," + (figwidth-width)/4 + "," + (figheight/2+30) + ")");
+    // var ylabel = canvas.append("text")
+    // 	.text("State Rank")
+    // 	.attr("class","axes-text")
+    // 	.attr("x",(figwidth-width)/4)
+    // 	.attr("y",figheight/2+30)
+    // 	.attr("font-size", "16.0px")
+    // 	.attr("fill", "#000000")
+    // 	.attr("transform", "rotate(-90.0," + (figwidth-width)/4 + "," + (figheight/2+30) + ")");
 
     var xlabel = canvas.append("text")
 	.text(xlabel)
 	.attr("class","axes-text")
-	.attr("x",width/2+(figwidth-width)/2)
+	.attr("x",margin.left+width/2)
 	.attr("y",3*(figheight-height)/4+height)
 	.attr("font-size", "16.0px")
 	.attr("fill", "#000000")
@@ -168,11 +167,11 @@ function plotBarChart(figure,data,geodata,xlabel) {
 	// .attr("fill", function(d,i) { return color(d[3]); })
 	.attr("fill",function(d,i) { return qcolor(d[3]); })    
 	.attr("class", function(d,i) { return d[2]+" staterect"; })
-	.attr("x", function(d,i) { if (d[3]>0) { return figcenter; } else { return figcenter; } })
+	.attr("x", function(d,i) { if (d[3]>0) { return 0; } else { return 0; } })
 	.attr("y", function(d,i) { return y(i+1); })
 	.style({'opacity':'0.7','stroke-width':'1','stroke':'rgb(0,0,0)'})
 	.attr("height",function(d,i) { return 11; } )
-	.attr("width",function(d,i) { return d3.max([0,x(d[3])-figcenter]); } )
+	.attr("width",function(d,i) { return d3.max([0,x(d[3])]); } )
 	.on('mouseover', function(d){
             var rectSelection = d3.select(this).style({opacity:'1.0'});
 	})
@@ -180,12 +179,12 @@ function plotBarChart(figure,data,geodata,xlabel) {
             var rectSelection = d3.select(this).style({opacity:'0.7'});
 	});
 
-    axes.selectAll("text.statetext")
+    canvas.selectAll("text.statetext")
 	.data(sortedStates)
 	.enter()
 	.append("text")
 	.attr("class", function(d,i) { return d[2]+" statetext"; })
-	.attr("x", function(d,i) { return figcenter-6; })
+	.attr("x", function(d,i) { return margin.left-6; })
 	.style({ "text-anchor": function(d,i) { return "end"; },
 		 "font-size": "12px"
 	       })
