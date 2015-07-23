@@ -37,23 +37,28 @@
 	<![endif]-->
     
     {% block addthis_header %}
-    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-539b215a08fde1a0"></script>
-    <script type="text/javascript">
-      var addthis_config = addthis_config || {};
-      addthis_config.data_track_addressbar = false;
-      addthis_config.data_track_clickback = false; 
+    <!-- THIS ONE FROM HEDONOMETER -->
+    <!-- <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-539b215a08fde1a0"></script> -->
 
-      var addthis_share = addthis_share || {}
-      addthis_share = {
-        // title: "title", // doesn't do anything, documentation patchy
-        passthrough : {
-          twitter: {
-            via: "panometer",
-            text: "panometer:"
-          }
-        }
-      }
-    </script>    
+    <!-- THIS IS THE NEW ONE -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-55b141ed39eada83" async="async"></script>
+    
+    <!-- <script type="text/javascript"> -->
+    <!--   var addthis_config = addthis_config || {}; -->
+    <!--   addthis_config.data_track_addressbar = false; -->
+    <!--   addthis_config.data_track_clickback = false;  -->
+
+    <!--   var addthis_share = addthis_share || {} -->
+    <!--   addthis_share = { -->
+    <!--     // title: "title", // doesn't do anything, documentation patchy -->
+    <!--     passthrough : { -->
+    <!--       twitter: { -->
+    <!--         via: "panometer", -->
+    <!--         text: "panometer:" -->
+    <!--       } -->
+    <!--     } -->
+    <!--   } -->
+    <!-- </script> -->    
     {% endblock %}
 
   </head>
