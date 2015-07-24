@@ -8,7 +8,7 @@ var state_decoder = d3.urllib.decoder().varname("state");
 var year_encoder = d3.urllib.encoder().varname("year").varval("2012");
 var view_decoder = d3.urllib.encoder().varname("view").varval("dashboard");
 var region_decoder = d3.urllib.encoder().varname("region").varval("contiguousUS");
-
+var people_decoder = d3.urllib.encoder().varname("users").varval("all");
 
 function stateLookup(name) {
     // given a state name, return the ID
