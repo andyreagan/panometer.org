@@ -4,13 +4,10 @@
 # private settings
 .env
 # static files served in production
-mysite/static/hedonometer
-mysite/static/consulting
-mysite/static/storybreaker
-mysite/static/swn
-mysite/static/vaccv
+mysite/static/panometer
 # virtual environment
 pyenv
+venv
 # daily backup of graphics on the local computer
 screenshots
 *.zip
