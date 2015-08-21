@@ -1,3 +1,11 @@
+// on page load, queue's up the geo json and draps the map on return (using dataloaded()).
+// at the end of this function, queue's up the map data and calls updatedMap() to put points on the map.
+// updateMap() is the end of the road for the initial load
+//
+// the year window buttons, and the variable dropdown will trigger updateMap()
+// the year drop down ...
+// the play button ...
+
 // globally namespace these things
 var geoJson;
 var stateFeatures;
@@ -15,6 +23,7 @@ for (var i=0; i<yearWindows.length; i++) {
     }
 }
 yearWindow = yearWindowDecoder().cached;
+
 // need to select the right one
 // do something like this:
 // http://stackoverflow.com/questions/19541484/bootstrap-set-initial-radio-button-checked-in-html
@@ -29,7 +38,7 @@ var variableLong = ["Max Temp","Min Temp","Summer Day","Winter Day","Summer Exte
 // for (var i=0; i<data.length-2; i++) { min = 150; max = -100; for (var j=0; j<data[i+1].length; j++) { if (data[i+1][j] > -9998) { if (data[i+1][j] > max) { max = data[i+1][j]; } if (data[i+1][j] < min) { min = data[i+1][j]; } } } allMins[i] = min; allMaxes[i] = max; }
 // d3.max(allMaxes);
 // d3.min(allMins);
-var variableRanges = [[60.802142,125.425581],[-41.824669,64.654411],[18,339],[85,301],[1,57],[2,60],]
+var variableRanges = [[60.802142,125.425581],[-41.824669,64.654411],[18,339],[85-184,301-184],[1,57],[2,60],]
 var variableIndex = 0;
 var variableEncoder = d3.urllib.encoder().varname("var");
 var variableDecoder = d3.urllib.decoder().varname("var").varresult("maxT");
@@ -51,7 +60,8 @@ var yearEncoder = d3.urllib.encoder().varname("year");
 var yearDecoder = d3.urllib.decoder().varname("year").varresult("0");
 yearIndex = parseFloat(yearDecoder().cached);
 
-var cityPlot = function(error,results) { 
+
+var cityPlot = function(error,results) {
     // function(i) {
     // console.log("plotting individual city data for city number:");
     // console.log(i);
@@ -132,6 +142,8 @@ var cityPlot = function(error,results) {
     }
     console.log(summer_teletherm);
     console.log(bwssaved);
+
+    console.log("will now plot the city data");    
 
     var figure = d3.select("#station1");
     
@@ -247,6 +259,10 @@ var cityPlot = function(error,results) {
 		"r": 2,
 	      });
     
+    // move the screen down to this
+    // document.getElementById('station1').focus();
+    $("html, body").animate({ scrollTop: $("#station1").offset().top }, 900);
+    // $.scrollTo($('#station1').offset().top);
 }
 
 $("#yearbuttons input").click(function() {
@@ -312,8 +328,8 @@ var maxTcolor = function(i) {
 }
 
 // diverging red blue color map from colorbrewer
-var divredbluerev = ["#67001f","#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#053061"]
-var divredblue = ["#053061","#2166ac","#4393c3","#92c5de","#d1e5f0","#f7f7f7","#fddbc7","#f4a582","#d6604d","#b2182b","#67001f",]
+var divredbluerev = ["#67001f","#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#var"];
+var divredblue = ["#053061","#2166ac","#4393c3","#92c5de","#d1e5f0","#f7f7f7","#fddbc7","#f4a582","#d6604d","#b2182b","#67001f",];
 
 var summerTScale = d3.scale.quantize()
     // celsius domain
@@ -322,6 +338,7 @@ var summerTScale = d3.scale.quantize()
     .range(divredblue);
 
 var fullExtent;
+var angle_offset = 0;
 
 var updateMap = function(error,results) {
     // console.log("update the map!");
@@ -351,17 +368,22 @@ var updateMap = function(error,results) {
 	    yearEncoder.varval(yearIndex.toFixed(0));
 	    changeYear();
 	})
+    $("#variabledropvis").html(variableLong[variableIndex]+" <span class=\"caret\"></span>");
 
     // set the domain for the scale based on this year's min/max
-    var localExtent;
-    localExtent = [d3.min(data.map(function(d) { return d3.min(d); } )),d3.max(data.map(function(d) { return d3.max(d); } ))];
-    // localExtent = d3.extent([].concat.apply([], data.slice(1,1300)))
-    fullExtent = localExtent;
+    // var localExtent;
+    // localExtent = [d3.min(data.map(function(d) { return d3.min(d); } )),d3.max(data.map(function(d) { return d3.max(d); } ))];
+    // // localExtent = d3.extent([].concat.apply([], data.slice(1,1300)))
+    // fullExtent = localExtent;
+    if (variableIndex = 3) {
+        angle_offset = -180;
+    }
+    
     summerTScale.domain(variableRanges[variableIndex]);
     
     cities.attr("fill",function(d,i) {
         if (data[i+1][yearIndex] > -9998) {
-            return summerTScale(data[i+1][yearIndex]);
+            return summerTScale(data[i+1][yearIndex]+angle_offset);
         }
         else {
             return summerTScale(75);
@@ -387,15 +409,15 @@ var updateMap = function(error,results) {
             return "hidden";
         }
     });
-
+    
     var arrowradius = 16;
     if (variableIndex === 2 || variableIndex === 3) {
 	// console.log("adding arrows");
 	cityarrows.attr({
-	    "x2": function(d,i) { return arrowradius*Math.cos(data[i+1][yearIndex]/365*2*Math.PI-Math.PI/2); },
-	    "y2": function(d,i) { return arrowradius*Math.sin(data[i+1][yearIndex]/365*2*Math.PI-Math.PI/2); },
+	    "x2": function(d,i) { return arrowradius*Math.cos((data[i+1][yearIndex]+angle_offset)/365*2*Math.PI-Math.PI/2); },
+	    "y2": function(d,i) { return arrowradius*Math.sin((data[i+1][yearIndex]+angle_offset)/365*2*Math.PI-Math.PI/2); },
 	    "stroke-width": "1.5",
-	    "stroke": function(d,i) { return summerTScale(data[i+1][yearIndex]); },
+	    "stroke": function(d,i) { return summerTScale(data[i+1][yearIndex]+angle_offset); },
 	});
     }
     else {
@@ -450,7 +472,7 @@ var changeYear = function() {
 
     cities.attr("fill",function(d,i) {
         if (data[i+1][yearIndex] > -9998) {
-            return summerTScale(data[i+1][yearIndex]);
+            return summerTScale(data[i+1][yearIndex]+angle_offset);
         }
         else {
             return summerTScale(75);
@@ -480,10 +502,10 @@ var changeYear = function() {
     var arrowradius = 16;
     if (variableIndex === 2 || variableIndex === 3) {
 	cityarrows.attr({
-	    "x2": function(d,i) { return arrowradius*Math.cos(data[i+1][yearIndex]/365*2*Math.PI-Math.PI/2); },
-	    "y2": function(d,i) { return arrowradius*Math.sin(data[i+1][yearIndex]/365*2*Math.PI-Math.PI/2); },
+	    "x2": function(d,i) { return arrowradius*Math.cos((data[i+1][yearIndex]+angle_offset)/365*2*Math.PI-Math.PI/2); },
+	    "y2": function(d,i) { return arrowradius*Math.sin((data[i+1][yearIndex]+angle_offset)/365*2*Math.PI-Math.PI/2); },
 	    "stroke-width": "1.5",
-	    "stroke": function(d,i) { return summerTScale(data[i+1][yearIndex]); },
+	    "stroke": function(d,i) { return summerTScale(data[i+1][yearIndex]+angle_offset); },
 	});
     }
     else {
@@ -638,8 +660,20 @@ var dataloaded = function(error,results) {
 	// d3.select(this).attr("r",rmin);
 
 	// alert("you clicked on the station at "+d[3]);
+        
+        // format the name a little better
+        var city_name_split = d[3].split(",");
+        var proper_city_name = city_name_split[0].split(" ");
+        for (var i=0; i<proper_city_name.length; i++) {
+            proper_city_name[i] = proper_city_name[i][0].toUpperCase() + proper_city_name[i].slice(1).toLowerCase();
+        }
+        var city_name = [proper_city_name.join(" "),city_name_split[1]].join(",")+":";
 
+        // alert("you clicked on the station at "+city_name);
+        document.getElementById("stationname").innerHTML = city_name;
+        
 	console.log(d[0]);
+        
 	
 	queue()
 	    .defer(d3.text,"/data/teledata/stations/tmax_boxplot_0"+d[0]+".txt")
