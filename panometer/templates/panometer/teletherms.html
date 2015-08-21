@@ -5,18 +5,17 @@
 <link href="{% static "panometer/css/teletherm.css" %}" rel="stylesheet">
 <!-- <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" /> -->
 <!-- <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css' rel='stylesheet' /> -->
+<link href="{% static "panometer/css/bootstrap.min.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 
 {% endblock %}
 
 {% block content %}
     <div class="container">
       <div class="row">
-        <div class="col-xs-0 col-sm-1">
-	</div>
-        <div class="col-xs-12 col-sm-10">
-	  <h1>Teletherms!</h1>
-	  
+        <div class="col-xs-12 col-sm-10 col-sm-offset-1">
 	  <div class="row">
+	    <h1>Teletherms!</h1>
 	    <p>Choose averaging window:</p>
 
 	    <!-- <\!-- (vertical) -\-> -->
@@ -54,7 +53,7 @@
 		<input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="10"> 10 Years
 	      </label>
 	      <label class="radio-inline">
-		<input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="20"> 20 Years
+		<input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="25"> 25 Years
 	      </label>
 	      <label class="radio-inline">
 		<input type="radio" name="inlineRadioOptions" id="inlineRadio4" value="50"> 50 Years
@@ -67,8 +66,7 @@
 
 
 	  <div class="row">
-
-
+            
 	    Select the variable:
 
 	    <div class="btn-group" id="variabledrop">
@@ -132,6 +130,7 @@
     <script src="{% static "panometer/js/urllib.js" %}"></script>
     <script src="{% static "panometer/js/hedotools.init.js" %}"></script>
     <script src="{% static "panometer/js/hedotools.map.js" %}"></script>
+    <script src="{% static "panometer/js/stations.js" %}"></script>
     <script src="{% static "panometer/js/teletherm.js" %}"></script>
 
 {% endblock %}
