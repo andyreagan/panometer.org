@@ -1,0 +1,14 @@
+/* #map { height: 380px; } */
+/* <style> */
+/* /\*  give the map some height *\/ */
+/* #map { */
+
+/* } */
+
+.state {
+    fill: #f0efe7;
+    stroke: black;
+    stroke-width: 1.5px;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
