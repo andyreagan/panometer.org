@@ -12,3 +12,20 @@
     stroke-linejoin: round;
     pointer-events: none;
 }
+
+.hoverinfogroup {
+    line-height: 1;
+    font-weight: bold;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+}
+
+#map {
+    position: relative;
+}
+
+g.citygroup {
+    cursor: pointer;
+}
