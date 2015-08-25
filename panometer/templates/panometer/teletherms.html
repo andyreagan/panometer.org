@@ -13,42 +13,13 @@
 {% block content %}
     <div class="container">
       <div class="row">
-        <div class="col-xs-12 col-sm-10 col-sm-offset-1">
-	  <div class="row">
-	    <h1>Teletherms!</h1>
+        <div class="col-xs-12 col-sm-12 col-sm-offset-0">
+	  <h1>Teletherms!</h1>
+          
+	  <div class="windowselection">
 	    <p>Choose averaging window:</p>
-
-	    <!-- <\!-- (vertical) -\-> -->
-	    <!-- <div class="radio"> -->
-	    <!--   <label> -->
-	    <!--     <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked> -->
-	    <!--     1 Year -->
-	    <!--   </label> -->
-	    <!-- </div> -->
-	    <!-- <div class="radio"> -->
-	    <!--   <label> -->
-	    <!--     <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2"> -->
-	    <!--     10 Years -->
-	    <!--   </label> -->
-	    <!-- </div> -->
-	    <!-- <div class="radio disabled"> -->
-	    <!--   <label> -->
-	    <!--     <input type="radio" name="optionsRadios" id="optionsRadios3" value="option3" disabled> -->
-	    <!--     20 Years -->
-	    <!--   </label> -->
-	    <!-- </div> -->
-	    <!-- <div class="radio disabled"> -->
-	    <!--   <label> -->
-	    <!--     <input type="radio" name="optionsRadios" id="optionsRadios3" value="option3" disabled> -->
-	    <!--     50 Years -->
-	    <!--   </label> -->
-	    <!-- </div> -->
-
 	    <!-- horizontal -->
 	    <div id="yearbuttons">
-	      <label class="radio-inline">
-		<input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="1"> 1 Year
-	      </label>
 	      <label class="radio-inline">
 		<input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="10"> 10 Years
 	      </label>
@@ -61,33 +32,27 @@
 	    </div>
 	  </div>
 
-	  <br>
-
-
-
-	  <div class="row">
+	  <div class="variableselection">
             
-	    Select the variable:
+	    <p>Select the variable:</p>
 
 	    <div class="btn-group" id="variabledrop">
 	      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" id="variabledropvis">
 		Max Temp <span class="caret"></span>
 	      </button>
 	      <ul class="dropdown-menu" role="menu">
-		<li><a>Max Temp</a></li>
-		<li><a>Min Temp</a></li>
-		<li><a>Summer Day</a></li>
-		<li><a>Winter Day</a></li>
-		<li><a>Summer Extent</a></li>
-		<li><a>Winter Extent</a></li>
+		<li><a>Summer Teletherm Day & Extent</a></li>
+		<li><a>Winter Teletherm Day & Extent</a></li>
+		<li><a>Summer Teletherm Temperature</a></li>
+		<li><a>Winter Teletherm Temperature</a></li>
 	      </ul>
 	    </div>
 
 	  </div>
-	  <br>
-	  <div class="row">
 
-	    Select the year:
+	  <div class="yearselection">
+
+	    <p>Select the year:</p>
 	    <!-- Single button -->
 	    <div class="btn-group" id="yeardrop">
 	      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" id="yeardropvis">
@@ -107,7 +72,7 @@
 	</div>
       </div> <!-- row -->
       <div class="row">
-        <div class="col-xs-0 col-sm-10 col-sm-offset-1">
+        <div class="col-xs-0 col-sm-12 col-sm-offset-0">
           <h3 id="stationname"></h3>
 	  <div id="station1"></div>
 	</div>
@@ -122,6 +87,7 @@
     <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>-->
     <script src="{% static "panometer/js/bootstrap.min.js" %}"></script>
     <script src="{% static "panometer/js/d3.js" %}"></script>
+    <script src="{% static "panometer/js/fisheye.js" %}"></script>    
     <script src="{% static "panometer/js/science.v1.js" %}"></script>
     <script src="{% static "panometer/js/queue.min.js" %}"></script>
     <script src="{% static "panometer/js/topojson.v1.min.js" %}"></script>

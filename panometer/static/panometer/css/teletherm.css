@@ -29,3 +29,17 @@
 g.citygroup {
     cursor: pointer;
 }
+
+div.windowselection {
+    display: inline-block;
+}
+
+div.variableselection {
+    display: inline-block;
+    padding-left: 40px;
+}
+
+div.yearselection {
+    display: inline-block;
+    padding-left: 40px
+}    

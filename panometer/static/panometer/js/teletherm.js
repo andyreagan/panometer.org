@@ -1,10 +1,17 @@
-// on page load, queue's up the geo json and draps the map on return (using dataloaded()).
+// on page load, queue's up the geo json and draps the map on return (using dataloaded())
 // at the end of this function, queue's up the map data and calls updatedMap() to put points on the map.
 // updateMap() is the end of the road for the initial load
 //
 // the year window buttons, and the variable dropdown will trigger updateMap()
 // the year drop down ... (#yeardroplist) calls changeYear()
 // the play button ...  calls changeYear()
+//
+// TODO
+// -add a timeline
+// -combine the extent and date
+// -fix left/right bounds on bottom plot
+// -label teletherms in bottom plot
+// -more info in pop-up
 
 // globally namespace these things
 var geoJson;
@@ -16,7 +23,7 @@ var arrowradius = 16;
 // careful not to overload "window"
 var windowEncoder = d3.urllib.encoder().varname("window"); //.varval(...);
 var windowDecoder = d3.urllib.decoder().varname("window").varresult("25");
-var windows = ["1","10","25","50"];
+var windows = ["10","25","50"];
 var windowIndex = 0;
 var currentWindow;
 for (var i=0; i<windows.length; i++) {
@@ -71,17 +78,18 @@ var city_clicked_initial_load = function(d) {
 // http://stackoverflow.com/questions/19541484/bootstrap-set-initial-radio-button-checked-in-html
 d3.select("#yearbuttons").selectAll("input").attr("checked",function(d,i) { if (i===windowIndex) { return "checked"; } else { return null; } });
 
-// var variable = "Max Temp";
-var variableShort = ["maxT","minT","summer_day","winter_day","summer_extent","winter_extent",]
-var variableLong = ["Max Temp","Min Temp","Summer Day","Winter Day","Summer Extent","Winter Extent",]
-var variableHover = ["Max Temp","Min Temp","Summer Teletherm","Winter Teletherm","Summer Teletherm Extent","Winter Teletherm Extent",]
-// ranges are pre-computed from the 1-year data like this:
+
+var variableLong = ["Summer Teletherm Day & Extent","Winter Teletherm Day & Extent","Summer Teletherm Temperature","Winter Teletherm Temperature"];
+var variableShort = ["summer_day","winter_day","maxT","minT",]
+var variableHover = variableLong;
+// ranges are pre-computed from the data like this:
 // allMins = Array(data.length-2);
 // allMaxes = Array(data.length-2);
 // for (var i=0; i<data.length-2; i++) { min = 150; max = -100; for (var j=0; j<data[i+1].length; j++) { if (data[i+1][j] > -9998) { if (data[i+1][j] > max) { max = data[i+1][j]; } if (data[i+1][j] < min) { min = data[i+1][j]; } } } allMins[i] = min; allMaxes[i] = max; }
-// d3.max(allMaxes);
-// d3.min(allMins);
-var variableRanges = [[60.802142,125.425581],[-41.824669,64.654411],[18,339],[85-184,301-184],[1,57],[2,60],];
+// console.log("["+d3.min(allMins)+","+d3.max(allMaxes)+"]");
+// these are the 1 year ranges
+// var variableRanges = [[60.802142,125.425581],[-41.824669,64.654411],[18,339],[85-184,301-184],[1,57],[2,60],];
+var variableRanges = [[144,295],[145-184,257-184],[61.598812,125.425581],[-30.488525,65.002232],]
 var maxYear = 2012;
 var variableIndex = 0;
 var variableEncoder = d3.urllib.encoder().varname("var");
@@ -102,9 +110,11 @@ var year;
 var yearIndex;
 var allyears;
 var yearEncoder = d3.urllib.encoder().varname("year");
-var yearDecoder = d3.urllib.decoder().varname("year").varresult("100");
+var yearDecoder = d3.urllib.decoder().varname("year").varresult("1960");
 yearEncoder.varval(yearDecoder().cached);
-yearIndex = parseFloat(yearDecoder().cached);
+// yearIndex = parseFloat(yearDecoder().cached);
+// can't really get the index until we have the years loaded
+yearIndex = 60;
 // yearEncoder.varval(yearIndex);
 
 var global_city_result;
@@ -151,23 +161,31 @@ var cityPlot = function(error,results) {
     var tmax_coverage_years = results[3].split("\n")[0].split(" ").map(parseFloat);
     var tmax_coverage_perc = results[3].split("\n")[1].split(" ").map(parseFloat);
 
+    // get out the data I want
+    var tmin_boxplot = results[4].split("\n").slice(0,5).map(function(d) { return d.split(" ").map(parseFloat); });
+    var tmin_median = tmin_boxplot[6];
+    var tmin_avg = results[5].split(" ").map(parseFloat);
+    var tmin_smoothed_days = results[6].split("\n")[0].split(" ").map(parseFloat);
+    // var tmin_smoothed = results[6].split("\n")[1].split(" ").map(parseFloat);
+    var tmin_coverage_years = results[7].split("\n")[0].split(" ").map(parseFloat);
+    var tmax_coverage_perc = results[7].split("\n")[1].split(" ").map(parseFloat);
+
     // var kernel = science.stats.kernel.gaussian;
 
     // windows
-    bws = [3,5,7,9,11,13,15,17,19,21,23,25,27,29,31];
+    var bws = [3,5,7,9,11,13,15,17,19,21,23,25,27,29,31];
     // store the compute teletherm day for each window
-    var summer_teletherms = Array(bws.length);
+    var summer_teletherms = Array(15);
     // store the gaussian
     var g = Array(365);
     var alpha = 2;
-    var smoothed = Array(365);
     // extra long T vector, just handy for indexing
-    var longer_tmax = [].concat(tmax_avg,tmax_avg,tmax_avg);
+    var longer_tmax = [].concat(tmax_avg,tmax_avg,tmax_avg,tmax_avg);
     var t_extent = d3.extent(tmax_avg)[1]-d3.extent(tmax_avg)[0];
     // save things for bw=15
     var summer_teletherm_extent = Array(2);
     var tmax_smoothed_js = Array(365);
-    var bwssaved = Array(bws.length);
+    var summer_bwssaved = Array(bws.length);
     for (var i=0; i<bws.length; i++) {
         var bw = bws[i];
 	for (var j=0; j<g.length; j++) {
@@ -179,19 +197,19 @@ var cityPlot = function(error,results) {
 	}
 	var gsum = d3.sum(g);
 	g = g.map(function(d) { return d/gsum; });
-	for (var j=0; j<g.length; j++) {
-	    smoothed[j] = science.lin.dot(g,longer_tmax.slice((j+365)-182,(j+1+365)+182));
+        summer_bwssaved[i] = Array(365+183);
+        for (var j=0; j<summer_bwssaved[i].length; j++) {
+	    summer_bwssaved[i][j] = science.lin.dot(g,longer_tmax.slice((j+365)-182,(j+1+365)+182));
 	}
 	// console.log(smoothed);
 	// now find the max for the summer teletherm
 	// this is the max T, but need to grab that day
-        console.log(d3.max(smoothed));
-	summer_teletherms[i] = smoothed.indexOf(d3.max(smoothed))+1;
-	bwssaved[i] = smoothed;
+        console.log(d3.max(summer_bwssaved[i]));
+	summer_teletherms[i] = summer_bwssaved[i].indexOf(d3.max(summer_bwssaved[i]))+1;
     }
 
-    var plot_bws = 0;
-    tmax_smoothed_js = bwssaved[plot_bws];
+    var plot_bws = 6;
+    tmax_smoothed_js = summer_bwssaved[plot_bws];
     var maxT = d3.max(tmax_smoothed_js);        
     // console.log(maxT);
     // then look out for the days within 2% of that temperature range
@@ -210,7 +228,57 @@ var cityPlot = function(error,results) {
     summer_teletherm_extent[1] = j;
 
     console.log(summer_teletherms);
-    // console.log(bwssaved);
+    // console.log(summer_bwssaved);
+
+    var tmin_smoothed_js = Array(365);
+    var winter_bwssaved = Array(bws.length);
+    var winter_teletherms = Array(15);
+    var longer_tmin = [].concat(tmin_avg,tmin_avg,tmin_avg,tmin_avg);
+    var t_extent = d3.extent(tmin_avg)[1]-d3.extent(tmin_avg)[0];
+    var winter_teletherm_extent = Array(2);    
+    for (var i=0; i<bws.length; i++) {
+        var bw = bws[i];
+	for (var j=0; j<g.length; j++) {
+	    // gaussian kernel
+	    // g[j] = Math.exp(-1/2*((182-j)/bw*(182-j)/bw));
+	    // parameterized a la matlab
+	    // http://www.mathworks.com/help/signal/ref/gausswin.html
+	    g[j] = Math.exp(-1/2*(alpha*(182-j)/((bw-1)/2)*alpha*(182-j)/((bw-1)/2)));
+	}
+	var gsum = d3.sum(g);
+	g = g.map(function(d) { return d/gsum; });
+        winter_bwssaved[i] = Array(365+183);
+        for (var j=0; j<winter_bwssaved[i].length; j++) {
+	    winter_bwssaved[i][j] = science.lin.dot(g,longer_tmin.slice((j+365)-182,(j+1+365)+182));
+	}
+	// console.log(smoothed);
+	// now find the min for the winter teletherm
+	// this is the min T, but need to grab that day
+        console.log(d3.min(winter_bwssaved[i]));
+	winter_teletherms[i] = winter_bwssaved[i].indexOf(d3.min(winter_bwssaved[i]))+1;        
+    }
+
+    var plot_bws = 6;
+    tmin_smoothed_js = winter_bwssaved[plot_bws];
+    var minT = d3.min(tmin_smoothed_js);        
+    // console.log(minT);
+    // then look out for the days within 2% of that temperature range
+    // that is, with 
+    // march forward
+    var j = winter_teletherms[plot_bws]+1;
+    while (tmin_avg[j] < (minT-.02*t_extent)) {
+	j++;
+    }
+    winter_teletherm_extent[0] = j;
+    // march backward
+    var j = winter_teletherms[plot_bws]-1;
+    while (tmin_avg[j] < (minT-.02*t_extent)) {
+	j--;
+    }
+    winter_teletherm_extent[1] = j;
+
+    console.log(winter_teletherms);
+    // console.log(winter_bwssaved);    
 
     console.log("will now plot the city data");    
 
@@ -219,8 +287,8 @@ var cityPlot = function(error,results) {
     var margin = {top: 2, right: 0, bottom: 50, left: 50};
 
     // full width and height
-    var figwidth  = parseInt(figure.style("width"))/2;
-    var figheight = 400; // figwidth*1.2;
+    var figwidth  = parseInt(figure.style("width"));
+    var figheight = 600; // figwidth*1.2;
     // don't shrink this
     var width = figwidth - margin.left - margin.right;
     // tiny bit of space
@@ -237,13 +305,17 @@ var cityPlot = function(error,results) {
 	.attr("width", figwidth)
 	.attr("height", figheight);
 
-    var x = d3.scale.linear()
-	.domain([1,365])
+    var x_max = d3.scale.linear()
+	.domain([1,365+183])
+	.range([0,width]);
+
+    var x_min = d3.scale.linear()
+	.domain([1-183,365])
 	.range([0,width]);
 
     var y =  d3.scale.linear()
 	// .domain([-30,130]) // summer temps
-	.domain(d3.extent(tmax_avg))
+	.domain([d3.min(tmin_avg),d3.max(tmax_avg)])
 	.range([height-10, 10]); 
 
     // create the axes themselves
@@ -265,7 +337,7 @@ var cityPlot = function(error,results) {
     // axes creation functions
     var create_xAxis = function() {
 	return d3.svg.axis()
-	    .scale(x)
+	    .scale(x_max)
 	    .ticks(9)
 	    .orient("bottom"); }
 
@@ -298,36 +370,56 @@ var cityPlot = function(error,results) {
 	.attr("transform", "translate(0," + (height) + ")")
 	.call(xAxis);
 
-    var line = d3.svg.line()
-	.x(function(d,i) { return x(i+1); })
+    var line_max = d3.svg.line()
+	.x(function(d,i) { return x_max(i+1); })
 	.y(function(d) { return y(d); })
 	.interpolate("linear"); // cardinal
 
-    for (var i=0; i<bws.length; i++) {
-        axes.append("path")
-	    .datum(bwssaved[i])
-	    .attr("class", "linejs")
-	    .attr("d", line)
-	    .attr("stroke","red")
-	    .attr("stroke-width",2)
-	    .attr("fill","none");
-    }
+    var line_min = d3.svg.line()
+	.x(function(d,i) { return x_min(i+1-365); })
+	.y(function(d) { return y(d); })
+	.interpolate("linear"); // cardinal    
 
+    // for (var i=0; i<bws.length; i++) {
+    //     axes.append("path")
+    //         .datum(summer_bwssaved[i])
+    //         .attr("class", "linejs")
+    //         .attr("d", line_max)
+    //         .attr("stroke","red")
+    //         .attr("stroke-width",2)
+    //         .attr("fill","none");
+    // }
 
+    axes.append("path")
+        .datum(tmax_smoothed_js)
+        .attr("class", "linejs")
+        .attr("d", line_max)
+        .attr("stroke","red")
+        .attr("stroke-width",2)
+        .attr("fill","none");
 
-    // axes.append("path")
-    //     .datum(tmax_smoothed)
-    //     .attr("class", "linepeter")
-    //     .attr("d", line)
-    //     .attr("stroke","red")
-    //     .attr("stroke-width",3)
-    //     .attr("fill","none");
+    axes.append("path")
+        .datum(tmin_smoothed_js)
+        .attr("class", "linepeter")
+        .attr("d", line_min)
+        .attr("stroke","blue")
+        .attr("stroke-width",2)
+        .attr("fill","none");
 
-    axes.selectAll("circle.daytemp")
-	.data(tmax_avg)
+    axes.selectAll("circle.avgmaxtemp")
+	.data([].concat(tmax_avg,tmax_avg))
 	.enter()
 	.append("circle")
-	.attr({ "cx": function(d,i) { return x(i); },
+	.attr({ "cx": function(d,i) { return x_max(i); },
+		"cy": function(d,i) { return y(d); },
+		"r": 2,
+	      });
+
+    axes.selectAll("circle.avgmintemp")
+	.data([].concat(tmin_avg,tmin_avg))
+	.enter()
+	.append("circle")
+	.attr({ "cx": function(d,i) { return x_min(i-365); },
 		"cy": function(d,i) { return y(d); },
 		"r": 2,
 	      });
@@ -428,6 +520,14 @@ var updateMap = function(error,results) {
     allyears = data[0];
     // console.log("this is all the years:");
     // console.log(allyears);
+
+    for (var i=0; i<allyears.length; i++) {
+        if ((allyears[i]+"") === yearDecoder().cached) {
+            yearIndex = i;
+            break;
+        }
+    }
+    
     d3.select("#yeardroplist").selectAll("li").remove();
     d3.select("#yeardroplist")
 	.selectAll("li")
@@ -438,11 +538,12 @@ var updateMap = function(error,results) {
 	.text(function(d) { return d; })
         .on("click",function(d,i) {
 	    yearIndex = i;
-	    yearEncoder.varval(yearIndex.toFixed(0));
+	    // yearEncoder.varval(yearIndex.toFixed(0));
+            yearEncoder.varval(d);
 	    changeYear();
             if (yearIndex < allyears.length) {
 	        var play_button = d3.select("#playButton")
-                play_button.attr("class","btn btn-default");
+                play_button.attr("class","btn btn-default disabled");
                 // play_button.select("i").attr("class","fa fa-play");
             }            
 	})
@@ -454,8 +555,11 @@ var updateMap = function(error,results) {
     // localExtent = [d3.min(data.map(function(d) { return d3.min(d); } )),d3.max(data.map(function(d) { return d3.max(d); } ))];
     // // localExtent = d3.extent([].concat.apply([], data.slice(1,1300)))
     // fullExtent = localExtent;
-    if (variableIndex === 3) {
+    if (variableIndex === 1) {
         angle_offset = -180;
+    }
+    else {
+        angle_offset = 0;
     }
     
     summerTScale.domain(variableRanges[variableIndex]);
@@ -465,7 +569,7 @@ var updateMap = function(error,results) {
     // console.log("variableIndex="+variableIndex);    
     // draw a scale on the map
     // only need the circular scale for days of the year
-    if (variableIndex === 2 || variableIndex === 3) {
+    if (variableIndex < 2) {
         drawScale(variableRanges[variableIndex],"polar");
     }
     else {
@@ -538,7 +642,7 @@ var changeYear = function() {
         }
     });
     
-    if (variableIndex === 2 || variableIndex === 3) {
+    if (variableIndex < 2) {
 	cityarrows.attr({
 	    "x2": function(d,i) { return arrowradius*Math.cos((data[i+1][yearIndex]+angle_offset)/365*2*Math.PI-Math.PI/2); },
 	    "y2": function(d,i) { return arrowradius*Math.sin((data[i+1][yearIndex]+angle_offset)/365*2*Math.PI-Math.PI/2); },
@@ -641,12 +745,16 @@ var dataloaded = function(error,results) {
 
     // go ahead and draw the map right here.
     // worry about separating logic later
+
+    var fisheye = d3.fisheye.circular()
+        .radius(4)
+        .distortion(2);
     
     var figure = d3.select("#map");
     
     //Width and height
     w = parseInt(figure.style("width"));
-    h = w*650/900;
+    h = w*580/900;
 
     // remove an old figure if it exists
     figure.select(".canvas").remove();
@@ -659,14 +767,14 @@ var dataloaded = function(error,results) {
 	.attr("width", w)
 	.attr("height", h);
 
-    var projection = d3.geo.albersUsa()
-	.translate([w/2, h/2])
-	.scale(w*1.3);
+    projection = d3.geo.albersUsa()
+	.translate([w/2, h/2-10])
+	.scale(w*1.37);
 
     var path = d3.geo.path()
 	.projection(projection);
 
-    var states = canvas.selectAll("path")
+    states = canvas.selectAll("path")
 	.data(stateFeatures);
     
     states.enter()
@@ -698,7 +806,7 @@ var dataloaded = function(error,results) {
 	});
 
     function hidehover() {
-	console.log("hiding hover");
+	// console.log("hiding hover");
         canvas.selectAll("circle").transition().duration(500).style("opacity","1.0");
 	canvas.selectAll("circle").attr("r",rmin);        
         canvas.selectAll("line").transition().duration(500).style("opacity","1.0");        
@@ -708,7 +816,7 @@ var dataloaded = function(error,results) {
     }
 
     var city_hover = function(d,i) {
-	console.log(this);
+	// console.log(this);
 	d3.select(this).select("circle").attr("r",rmax);
         
 
@@ -720,7 +828,7 @@ var dataloaded = function(error,results) {
         
 	// var hoverboxheight = 90;
 	// var hoverboxwidth = 200;
-	// var hoverboxyoffset = 0;
+	var hoverboxyoffset = 5;
 	var hoverboxxoffset = -20;
 
         // thiscircle = d3.select(this);
@@ -744,7 +852,7 @@ var dataloaded = function(error,results) {
 
 	hovergroup.style({
 	    "position": "absolute",
-	    "top": y+"px",
+	    "top": (parseFloat(y)+hoverboxyoffset)+"px",
 	    "left": (parseFloat(x)+hoverboxxoffset)+"px",
 	    "visibility": "visible",
 	});
@@ -766,13 +874,9 @@ var dataloaded = function(error,results) {
             .text(variableHover[variableIndex]);
         
 	hovergroup.append("p")
-            .text(allyears[yearIndex]+"-"+(parseFloat(windows[windowIndex])+allyears[yearIndex]));
+            .html(allyears[yearIndex]+"&ndash;"+(parseFloat(windows[windowIndex])+allyears[yearIndex]));
 
         if (variableIndex < 2) {
-            hovergroup.append("p")
-                .text(data[parseFloat(d[0])+1][yearIndex]+" degrees");
-        }
-        if (variableIndex === 2 || variableIndex === 3) {
             // go convert the day to an actual date
             var teletherm_day = (data[parseFloat(d[0])+1][yearIndex]+angle_offset);
             var date = new Date(1900,0,1);
@@ -782,28 +886,31 @@ var dataloaded = function(error,results) {
                              ];
             // console.log(d);
 	    hovergroup.append("p")
-                .text(monthNames[date.getMonth()]+" "+date.getDate());
+                .text(monthNames[date.getMonth()]+" "+date.getDate());            
+
         }
-        if (variableIndex > 3) {
+        else {
             hovergroup.append("p")
-                .text(data[parseFloat(d[0])+1][yearIndex]+" days");
+                .html(data[parseFloat(d[0])+1][yearIndex].toFixed(2)+" degrees");
         }
 
-        clearTimeout(popuptimer);
-	popuptimer = setTimeout(hidehover,10000);
+        // clearTimeout(popuptimer);
+	// popuptimer = setTimeout(hidehover,10000);
         
     };
     
-    // var city_unhover = function(d,i) {
-    //     // console.log(this);
-    //     d3.select(this).attr("r",rmin);
-    // };
+    var city_unhover = function(d,i) {
+        // console.log(this);
+        // d3.select(this).attr("r",rmin);
+        hidehover();
+    };
     
     var city_clicked = function(d,i) {
 	// console.log(this);
 	// d3.select(this).attr("r",rmin);
 
 	// alert("you clicked on the station at "+d[3]);
+        cityEncoder.varval(d[3]);
         
         // format the name a little better
         var city_name_split = d[3].split(",");
@@ -811,7 +918,7 @@ var dataloaded = function(error,results) {
         for (var i=0; i<proper_city_name.length; i++) {
             proper_city_name[i] = proper_city_name[i][0].toUpperCase() + proper_city_name[i].slice(1).toLowerCase();
         }
-        var city_name = [proper_city_name.join(" "),city_name_split[1]].join(",")+":";
+        var city_name = [proper_city_name.join(" "),city_name_split[1]].join(",")+" (all data combined):";
 
         // alert("you clicked on the station at "+city_name);
         document.getElementById("stationname").innerHTML = city_name;
@@ -838,8 +945,9 @@ var dataloaded = function(error,results) {
         .attr("class","citygroup")
 	.attr("transform",function(d) { return "translate("+projection([d[2],d[1]])[0]+","+projection([d[2],d[1]])[1]+")"; })
 	.attr("my_x",function(d) { return projection([d[2],d[1]])[0]; })
-	.attr("my_y",function(d) { return projection([d[2],d[1]])[1]; })    
-        .on("mouseover",city_hover);
+	.attr("my_y",function(d) { return projection([d[2],d[1]])[1]; })
+        .on("mouseover",city_hover)
+        .on("mouseout",city_unhover);    
 
     cities = citygroups
     	.append("circle")
@@ -881,7 +989,52 @@ var dataloaded = function(error,results) {
     
     if (currentCityIndex > 0) {
         city_clicked_initial_load(locations[currentCityIndex]);
-    }    
+    }
+
+    canvas.on("mousemove", function() {
+        // console.log("mouse:");
+        // console.log(d3.mouse(this));
+        var here = d3.mouse(this);
+        // console.log(here); // [1030, 125]
+        // fisheye.focus([here[0]-w/2,here[1]-h/2]);
+        // console.log(projection.invert(here)); // [-72.4713375653601, 45.14035261565636]
+        // console.log(projection.invert([here[1],here[0]])); // [-112.1040289366678, 12.156636670355539]
+        var inverted = projection.invert([here[0],here[1]]); // [-72.4713375653601, 45.14035261565636]
+        // console.log(inverted); // [-72.4713375653601, 45.14035261565636]
+        // burlington is lat 44, lon -73
+        fisheye.focus(inverted);
+
+        // of course, the path function takes [longitude, latitude], so -72, 44 for burlington
+        // https://github.com/mbostock/d3/wiki/Geo-Paths
+        // (so that's what it gives back)
+
+        // states.attr("d", function(d) { return path(d.geometry); });
+        // canvas.selectAll("path").data(stateFeatures)
+        // states = canvas.selectAll("path").data(stateFeatures).attr("d", function(d) {
+        states.attr("d",null)
+            .attr("d", function(d) {
+                // console.log("original:");
+                // console.log(d.geometry);
+
+                if (d.geometry.type === "Polygon") {
+                    var b = d.geometry.coordinates.map(function(d) { return d.map(function(f) { return fisheye(f);}); });
+                }
+                else {
+                    var b = d.geometry.coordinates.map(function(d) { return d.map(function(f) { return f.map(function(g) { return fisheye(g); }); }); });
+                }
+                // console.log(b);
+                var c = {type: d.geometry.type, coordinates: b};
+                
+                // console.log("new:");
+                // console.log(c);
+
+                return path(c);
+        });
+
+        // states.exit();
+
+        citygroups.attr("transform",function(d) { return "translate("+projection(fisheye([d[2],d[1]])).join(",")+")"; });
+    });
 }
 
 // // can just use the d3.csv,json
