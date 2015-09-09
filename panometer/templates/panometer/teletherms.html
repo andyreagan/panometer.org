@@ -14,7 +14,7 @@
     <div class="container">
       <div class="row">
         <div class="col-xs-12 col-sm-12 col-sm-offset-0">
-	  <h1>Teletherms!</h1>
+	  <h1>Teletherms! (in development)</h1>
           
 	  <div class="windowselection">
 	    <p>Choose averaging window:</p>
@@ -52,31 +52,45 @@
 
 	  <div class="yearselection">
 
-	    <p>Select the year:</p>
+	    <p>Select the time frame:</p>
 	    <!-- Single button -->
 	    <div class="btn-group" id="yeardrop">
 	      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" id="yeardropvis">
-		1865 <span class="caret"></span>
+		1900 <span class="caret"></span>
 	      </button>
 	      <ul class="dropdown-menu" role="menu" id="yeardroplist">
-		<li><a>1865</a></li>
-		<li><a>1866</a></li>
-		<li><a>1867</a></li>
+		<li><a>1900</a></li>
+		<li><a>1901</a></li>
+		<li><a>...</a></li>
 	      </ul>
 	    </div>
 
 	    <button class="btn btn-default" type="submit" id="playButton"><i class="fa fa-play"></i></button>
 
 	  </div> <!-- row -->
-	  <div id="map"></div>
+	</div>
+      </div> <!-- row -->
+      <div class="row">
+        <div id="timeline"></div>
+      </div> <!-- row -->
+      <div class="row">
+        <div id="map"></div>
+      </div> <!-- row -->         
+      <div class="row">
+        <div class="col-xs-0 col-sm-12 col-sm-offset-0">
+          <button type="button" class="close" id="dismissCity" aria-label="Close" style="float: right"><span aria-hidden="true">×</span></button>
+          <h3 id="stationname" style="margin-right: 0; margin-top: 0"></h3>
+	  <div id="station1"></div>
 	</div>
       </div> <!-- row -->
       <div class="row">
         <div class="col-xs-0 col-sm-12 col-sm-offset-0">
-          <h3 id="stationname"></h3>
-	  <div id="station1"></div>
-	</div>
+          <h3>Online appendices: <a href="http://compstorylab.org/share/papers/dodds2015c/index.html" target="_blank">[link]</a>.</h3>
+          <h3>ArXiv paper: <a href="http://arxiv.org/abs/1508.05938" target="_blank">[link]</a>.</h3>
+        </div> <!-- col -->          
       </div> <!-- row -->
+      <br>
+      <br>
     </div> <!-- container -->
 {% endblock %}
 

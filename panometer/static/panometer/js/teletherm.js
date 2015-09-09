@@ -5,19 +5,34 @@
 // the year window buttons, and the variable dropdown will trigger updateMap()
 // the year drop down ... (#yeardroplist) calls changeYear()
 // the play button ...  calls changeYear()
-//
-// TODO
-// -add a timeline
-// -combine the extent and date
-// -fix left/right bounds on bottom plot
-// -label teletherms in bottom plot
-// -more info in pop-up
 
 // globally namespace these things
 var geoJson;
 var stateFeatures;
 
 var arrowradius = 16;
+var rmin = 4;
+var rmax = 6;
+
+var month_names = ["January", "February", "March", "April", "May", "June",
+                  "July", "August", "September", "October", "November", "December", ];
+var month_lengths = [31,28,31,30,31,30,31,31,30,31,30,31,];
+// this will be the first day of every month
+var month_lengths_cum = [1,31,28,31,30,31,30,31,31,30,31,30,];
+for (var i=1; i<month_lengths_cum.length; i++) {
+    month_lengths_cum[i] += month_lengths_cum[i-1];
+}
+// first day of every month for 18 months
+var month_lengths_cum_18_forward = [1,31,28,31,30,31,30,31,31,30,31,30,31,31,28,31,30,31,];
+for (var i=1; i<month_lengths_cum_18_forward.length; i++) {
+    month_lengths_cum_18_forward[i] += month_lengths_cum_18_forward[i-1];
+}
+// note, the above ends at 517, which is short of the xrange of 365+181 = 546
+// first day of every month for 18 months, starting backward 1
+var month_lengths_cum_18_backward = [1-181,31,28,31,30,31,30,31,31,30,31,30,31,31,28,31,30,31,];
+for (var i=1; i<month_lengths_cum_18_backward.length; i++) {
+    month_lengths_cum_18_backward[i] += month_lengths_cum_18_backward[i-1];
+}
 
 // the main variables for the file load
 // careful not to overload "window"
@@ -54,22 +69,31 @@ var city_clicked_initial_load = function(d) {
     for (var i=0; i<proper_city_name.length; i++) {
         proper_city_name[i] = proper_city_name[i][0].toUpperCase() + proper_city_name[i].slice(1).toLowerCase();
     }
-    var city_name = [proper_city_name.join(" "),city_name_split[1]].join(",")+":";
+    var city_name = [proper_city_name.join(" "),city_name_split[1]].join(",")+" ("+full_year_range[yearIndex]+"&ndash;"+(full_year_range[yearIndex]+parseInt(windowDecoder().cached))+"):";
 
     document.getElementById("stationname").innerHTML = city_name;
     
-    console.log(d[0]);
+    console.log(d);
     
+    // queue()
+    //     .defer(d3.text,"/data/teledata/stations/tmax_boxplot_0"+d[0]+".txt")
+    //     .defer(d3.text,"/data/teledata/stations/tmax_0"+d[0]+".txt")
+    //     .defer(d3.text,"/data/teledata/stations/tmax_smoothed_0"+d[0]+".txt")
+    //     .defer(d3.text,"/data/teledata/stations/tmax_coverage_0"+d[0]+".txt")
+    //     .defer(d3.text,"/data/teledata/stations/tmin_boxplot_0"+d[0]+".txt")
+    //     .defer(d3.text,"/data/teledata/stations/tmin_0"+d[0]+".txt")
+    //     .defer(d3.text,"/data/teledata/stations/tmin_smoothed_0"+d[0]+".txt")
+    //     .defer(d3.text,"/data/teledata/stations/tmin_coverage_0"+d[0]+".txt")
+    //     .awaitAll(cityPlot);
+
     queue()
-	.defer(d3.text,"/data/teledata/stations/tmax_boxplot_0"+d[0]+".txt")
-	.defer(d3.text,"/data/teledata/stations/tmax_0"+d[0]+".txt")
-	.defer(d3.text,"/data/teledata/stations/tmax_smoothed_0"+d[0]+".txt")
-	.defer(d3.text,"/data/teledata/stations/tmax_coverage_0"+d[0]+".txt")
-	.defer(d3.text,"/data/teledata/stations/tmin_boxplot_0"+d[0]+".txt")
-	.defer(d3.text,"/data/teledata/stations/tmin_0"+d[0]+".txt")
-	.defer(d3.text,"/data/teledata/stations/tmin_smoothed_0"+d[0]+".txt")
-	.defer(d3.text,"/data/teledata/stations/tmin_coverage_0"+d[0]+".txt")
-	.awaitAll(cityPlot);
+        .defer(d3.text,"/data/teledata/stations/tmax_0"+d[0]+".txt")
+        .defer(d3.text,"/data/teledata/stations/tmin_0"+d[0]+".txt")
+        .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_values_combined.txt")
+        .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_years_combined.txt")
+        .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-wrapped_tmin_values_combined.txt")
+        .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-wrapped_tmin_years_combined.txt")
+        .awaitAll(cityPlot);
 }
 
 
@@ -78,6 +102,13 @@ var city_clicked_initial_load = function(d) {
 // http://stackoverflow.com/questions/19541484/bootstrap-set-initial-radio-button-checked-in-html
 d3.select("#yearbuttons").selectAll("input").attr("checked",function(d,i) { if (i===windowIndex) { return "checked"; } else { return null; } });
 
+// now you can close a city
+$("#dismissCity").on("click",function() {
+    $("#stationsvg1").remove();
+    $("#stationname").html("");
+    $(this).css("visibility","hidden");
+    cityEncoder.destroy();
+})
 
 var variableLong = ["Summer Teletherm Day & Extent","Winter Teletherm Day & Extent","Summer Teletherm Temperature","Winter Teletherm Temperature"];
 var variableShort = ["summer_day","winter_day","maxT","minT",]
@@ -93,7 +124,7 @@ var variableRanges = [[144,295],[145-184,257-184],[61.598812,125.425581],[-30.48
 var maxYear = 2012;
 var variableIndex = 0;
 var variableEncoder = d3.urllib.encoder().varname("var");
-var variableDecoder = d3.urllib.decoder().varname("var").varresult("maxT");
+var variableDecoder = d3.urllib.decoder().varname("var").varresult("summer_day");
 // now this is going to be the short one
 var variable;
 variable = variableDecoder().cached;
@@ -109,15 +140,67 @@ $("#variabledropvis").html(variableLong[variableIndex]+" <span class=\"caret\"><
 var year;
 var yearIndex;
 var allyears;
+var full_year_range = [1900,1901,1902,1903,1904,1905,1906,1907,1908,1909,1910,1911,1912,1913,1914,1915,1916,1917,1918,1919,1920,1921,1922,1923,1924,1925,1926,1927,1928,1929,1930,1931,1932,1933,1934,1935,1936,1937,1938,1939,1940,1941,1942,1943,1944,1945,1946,1947,1948,1949,1950,1951,1952,1953,1954,1955,1956,1957,1958,1959,1960,1961,1962,1963,1964,1965,1966,1967,1968,1969,1970,1971,1972,1973,1974,1975,1976,1977,1978,1979,1980,1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013];
 var yearEncoder = d3.urllib.encoder().varname("year");
 var yearDecoder = d3.urllib.decoder().varname("year").varresult("1960");
 yearEncoder.varval(yearDecoder().cached);
 // yearIndex = parseFloat(yearDecoder().cached);
 // can't really get the index until we have the years loaded
-yearIndex = 60;
+for (var i=0; i<full_year_range.length; i++) {
+    if ((full_year_range[i]+"") === yearDecoder().cached) {
+        yearIndex = i;
+        break;
+    }
+}
 // yearEncoder.varval(yearIndex);
 
 var global_city_result;
+
+var smooth_timeseries_gaussian = function(windows,t,season) {
+    // store the compute teletherm day for each window
+    var teletherm_dates = Array(windows.length);
+    var teletherm_extents = Array(windows.length);        
+    // store the gaussian
+    var g = Array(365);
+    var alpha = 2;
+    // extra long T vector, just handy for indexing
+    var longer_t = [].concat(t,t,t);
+    var range_t = d3.extent(t)[1]-d3.extent(t)[0];
+    // save things for all timeseries
+    var smoothed_timeseries = Array(windows.length);
+    for (var i=0; i<windows.length; i++) {
+        var my_window = windows[i];
+	for (var j=0; j<g.length; j++) {
+	    // gaussian kernel
+	    // g[j] = Math.exp(-1/2*((182-j)/my_window*(182-j)/my_window));
+	    // parameterized a la matlab
+	    // http://www.mathworks.com/help/signal/ref/gausswin.html
+	    g[j] = Math.exp(-1/2*(alpha*(182-j)/((my_window-1)/2)*alpha*(182-j)/((my_window-1)/2)));
+	}
+	var gsum = d3.sum(g);
+	g = g.map(function(d) { return d/gsum; });
+        smoothed_timeseries[i] = Array(365);
+        for (var j=0; j<365; j++) {
+	    smoothed_timeseries[i][j] = science.lin.dot(g,longer_t.slice((j+365)-182,(j+1+365)+182));
+	}
+	// now find the max for the summer teletherm
+	// this is the max T, but need to grab that day
+        if (season === "summer") {
+            var T_teletherm = d3.max(smoothed_timeseries[i]);
+        }
+        else {
+            var T_teletherm = d3.min(smoothed_timeseries[i]);
+        }
+	teletherm_dates[i] = smoothed_timeseries[i].indexOf(T_teletherm)+1;
+        
+        // then look out for the days within 2% of that temperature range
+        teletherm_extents[i] = [teletherm_dates[i]-1,teletherm_dates[i]+1];
+        while (Math.abs(smoothed_timeseries[i][teletherm_extents[i][0]] - T_teletherm) < .02*range_t) { teletherm_extents[i][0]--; }
+        while (Math.abs(smoothed_timeseries[i][teletherm_extents[i][1]] - T_teletherm) < .02*range_t) { teletherm_extents[i][1]++; }
+    }
+
+    return {"smoothed_timeseries": smoothed_timeseries, "teletherm_dates": teletherm_dates, "teletherm_extents": teletherm_extents,};
+}
 
 var cityPlot = function(error,results) {
     // function(i) {
@@ -149,146 +232,146 @@ var cityPlot = function(error,results) {
     // .defer(d3.text,"/data/teledata/stations/tmin_smoothed_0"+d[0]+".txt")
     // .defer(d3.text,"/data/teledata/stations/tmin_coverage_0"+d[0]+".txt")
 
+    // .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_values_combined.txt")
+    // this one has the values for each day in the year, with rows as the years, and values going across
+    //
+    // .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_years_combined.txt")
+    // this one has the years for the above file, going down
+    // .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-wrapped_tmin_values_combined.txt")
+    // .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-wrapped_tmin_years_combined.txt")
+
     // just to take a look
     // global_city_result = results;
 
     // get out the data I want
-    var tmax_boxplot = results[0].split("\n").slice(0,5).map(function(d) { return d.split(" ").map(parseFloat); });
-    var tmax_median = tmax_boxplot[2];
-    var tmax_avg = results[1].split(" ").map(parseFloat);
-    var tmax_smoothed_days = results[2].split("\n")[0].split(" ").map(parseFloat);
-    // var tmax_smoothed = results[2].split("\n")[1].split(" ").map(parseFloat);
-    var tmax_coverage_years = results[3].split("\n")[0].split(" ").map(parseFloat);
-    var tmax_coverage_perc = results[3].split("\n")[1].split(" ").map(parseFloat);
 
-    // get out the data I want
-    var tmin_boxplot = results[4].split("\n").slice(0,5).map(function(d) { return d.split(" ").map(parseFloat); });
-    var tmin_median = tmin_boxplot[6];
-    var tmin_avg = results[5].split(" ").map(parseFloat);
-    var tmin_smoothed_days = results[6].split("\n")[0].split(" ").map(parseFloat);
-    // var tmin_smoothed = results[6].split("\n")[1].split(" ").map(parseFloat);
-    var tmin_coverage_years = results[7].split("\n")[0].split(" ").map(parseFloat);
-    var tmax_coverage_perc = results[7].split("\n")[1].split(" ").map(parseFloat);
+    // only really need these
+    // var tmax_avg;
+    // var tmin_avg;
 
-    // var kernel = science.stats.kernel.gaussian;
+    var split_results_precomputed_all = function() {
+        // tmax_boxplot = results[0].split("\n").slice(0,5).map(function(d) { return d.split(" ").map(parseFloat); });
+        // tmax_median = tmax_boxplot[2];
+        tmax_avg = results[1].split(" ").map(parseFloat);
+        // tmax_smoothed_days = results[2].split("\n")[0].split(" ").map(parseFloat);
+        // tmax_smoothed = results[2].split("\n")[1].split(" ").map(parseFloat);
+        // tmax_coverage_years = results[3].split("\n")[0].split(" ").map(parseFloat);
+        // tmax_coverage_perc = results[3].split("\n")[1].split(" ").map(parseFloat);
 
-    // windows
-    var bws = [3,5,7,9,11,13,15,17,19,21,23,25,27,29,31];
-    // store the compute teletherm day for each window
-    var summer_teletherms = Array(15);
-    // store the gaussian
-    var g = Array(365);
-    var alpha = 2;
-    // extra long T vector, just handy for indexing
-    var longer_tmax = [].concat(tmax_avg,tmax_avg,tmax_avg,tmax_avg);
-    var t_extent = d3.extent(tmax_avg)[1]-d3.extent(tmax_avg)[0];
-    // save things for bw=15
-    var summer_teletherm_extent = Array(2);
-    var tmax_smoothed_js = Array(365);
-    var summer_bwssaved = Array(bws.length);
-    for (var i=0; i<bws.length; i++) {
-        var bw = bws[i];
-	for (var j=0; j<g.length; j++) {
-	    // gaussian kernel
-	    // g[j] = Math.exp(-1/2*((182-j)/bw*(182-j)/bw));
-	    // parameterized a la matlab
-	    // http://www.mathworks.com/help/signal/ref/gausswin.html
-	    g[j] = Math.exp(-1/2*(alpha*(182-j)/((bw-1)/2)*alpha*(182-j)/((bw-1)/2)));
-	}
-	var gsum = d3.sum(g);
-	g = g.map(function(d) { return d/gsum; });
-        summer_bwssaved[i] = Array(365+183);
-        for (var j=0; j<summer_bwssaved[i].length; j++) {
-	    summer_bwssaved[i][j] = science.lin.dot(g,longer_tmax.slice((j+365)-182,(j+1+365)+182));
-	}
-	// console.log(smoothed);
-	// now find the max for the summer teletherm
-	// this is the max T, but need to grab that day
-        console.log(d3.max(summer_bwssaved[i]));
-	summer_teletherms[i] = summer_bwssaved[i].indexOf(d3.max(summer_bwssaved[i]))+1;
+        // tmin_boxplot = results[4].split("\n").slice(0,5).map(function(d) { return d.split(" ").map(parseFloat); });
+        // tmin_median = tmin_boxplot[6];
+        tmin_avg = results[5].split(" ").map(parseFloat);
+        // tmin_smoothed_days = results[6].split("\n")[0].split(" ").map(parseFloat);
+        // tmin_smoothed = results[6].split("\n")[1].split(" ").map(parseFloat);
+        // tmin_coverage_years = results[7].split("\n")[0].split(" ").map(parseFloat);
+        // tmax_coverage_perc = results[7].split("\n")[1].split(" ").map(parseFloat);
     }
 
-    var plot_bws = 6;
-    tmax_smoothed_js = summer_bwssaved[plot_bws];
-    var maxT = d3.max(tmax_smoothed_js);        
-    // console.log(maxT);
-    // then look out for the days within 2% of that temperature range
-    // that is, with 
-    // march forward
-    var j = summer_teletherms[plot_bws]+1;
-    while (tmax_avg[j] > (maxT-.02*t_extent)) {
-	j++;
-    }
-    summer_teletherm_extent[0] = j;
-    // march backward
-    var j = summer_teletherms[plot_bws]-1;
-    while (tmax_avg[j] > (maxT-.02*t_extent)) {
-	j--;
-    }
-    summer_teletherm_extent[1] = j;
+    // only really need these
+    // var tmax_raw;
+    // var tmax_raw_years;
+    // var tmin_raw;
+    // var tmin_raw_years;
 
-    console.log(summer_teletherms);
-    // console.log(summer_bwssaved);
+    var split_results_precomputed_small = function() {
+        tmax_avg = results[0].split(" ").map(parseFloat);
+        tmin_avg = results[1].split(" ").map(parseFloat);
 
-    var tmin_smoothed_js = Array(365);
-    var winter_bwssaved = Array(bws.length);
-    var winter_teletherms = Array(15);
-    var longer_tmin = [].concat(tmin_avg,tmin_avg,tmin_avg,tmin_avg);
-    var t_extent = d3.extent(tmin_avg)[1]-d3.extent(tmin_avg)[0];
-    var winter_teletherm_extent = Array(2);    
-    for (var i=0; i<bws.length; i++) {
-        var bw = bws[i];
-	for (var j=0; j<g.length; j++) {
-	    // gaussian kernel
-	    // g[j] = Math.exp(-1/2*((182-j)/bw*(182-j)/bw));
-	    // parameterized a la matlab
-	    // http://www.mathworks.com/help/signal/ref/gausswin.html
-	    g[j] = Math.exp(-1/2*(alpha*(182-j)/((bw-1)/2)*alpha*(182-j)/((bw-1)/2)));
-	}
-	var gsum = d3.sum(g);
-	g = g.map(function(d) { return d/gsum; });
-        winter_bwssaved[i] = Array(365+183);
-        for (var j=0; j<winter_bwssaved[i].length; j++) {
-	    winter_bwssaved[i][j] = science.lin.dot(g,longer_tmin.slice((j+365)-182,(j+1+365)+182));
-	}
-	// console.log(smoothed);
-	// now find the min for the winter teletherm
-	// this is the min T, but need to grab that day
-        console.log(d3.min(winter_bwssaved[i]));
-	winter_teletherms[i] = winter_bwssaved[i].indexOf(d3.min(winter_bwssaved[i]))+1;        
+        tmax_raw = results[2].split("\n").map(function(d) { return d.split(" ").map(parseFloat).slice(0,365); });
+        tmax_raw_years = results[3].split("\n").map(parseFloat);
+        if (isNaN(tmax_raw_years[tmax_raw_years.length-1])) {
+            tmax_raw_years = tmax_raw_years.slice(0,tmax_raw_years.length-1);
+            tmax_raw = tmax_raw.slice(0,tmax_raw.length-1);
+        }
+        tmin_raw = results[2].split("\n").map(function(d) { return d.split(" ").map(parseFloat).slice(0,365); });
+        tmin_raw_years = results[3].split("\n").map(parseFloat);
+        if (isNaN(tmin_raw_years[tmin_raw_years.length-1])) {
+            tmin_raw_years = tmin_raw_years.slice(0,tmin_raw_years.length-1);
+            tmin_raw = tmin_raw.slice(0,tmin_raw.length-1);
+        }
     }
 
-    var plot_bws = 6;
-    tmin_smoothed_js = winter_bwssaved[plot_bws];
-    var minT = d3.min(tmin_smoothed_js);        
-    // console.log(minT);
-    // then look out for the days within 2% of that temperature range
-    // that is, with 
-    // march forward
-    var j = winter_teletherms[plot_bws]+1;
-    while (tmin_avg[j] < (minT-.02*t_extent)) {
-	j++;
-    }
-    winter_teletherm_extent[0] = j;
-    // march backward
-    var j = winter_teletherms[plot_bws]-1;
-    while (tmin_avg[j] < (minT-.02*t_extent)) {
-	j--;
-    }
-    winter_teletherm_extent[1] = j;
+    // split_results_precomputed_all();
+    split_results_precomputed_small();
 
-    console.log(winter_teletherms);
-    // console.log(winter_bwssaved);    
+    console.log(tmin_avg);
 
-    console.log("will now plot the city data");    
+    // check that the tmin and tmax start at the same year
+    if (tmin_raw_years[0] !== tmax_raw_years[0]) {
+        console.log("first years are  off");
+    }
+
+    // check that the tmin and tmax have the same # of years
+    if (tmin_raw_years.length !== tmax_raw_years.length) {
+        console.log("lengths are off");
+    }
+
+    // var yearOffset = 0;
+    // go get the year offset from the allyears
+    for (var i=0; i<allyears.length; i++) {
+        if (tmin_raw_years[0] === allyears[i]) {
+            yearOffset = i;
+            break;
+        }
+    }
+
+    var good_tmax_count = Array(365);
+    var good_tmin_count = Array(365);
+    
+    // reset these
+    for (var i=0; i<365; i++) {
+        tmax_avg[i] = 0;
+        tmin_avg[i] = 0;
+        good_tmax_count[i] = 0;
+        good_tmin_count[i] = 0;        
+    }
+
+    // add them up
+    for (var j=0; j<parseInt(windowDecoder().cached); j++) {
+        for (var i=0; i<365; i++) {
+            if (tmax_raw[j+yearIndex-yearOffset][i] > -9998) {
+                tmax_avg[i] = tmax_avg[i] + tmax_raw[j+yearIndex-yearOffset][i];
+                good_tmax_count[i]++;
+            }
+            if (tmin_raw[j+yearIndex-yearOffset][i] > -9998) {
+                tmin_avg[i] = tmin_avg[i] + tmin_raw[j+yearIndex-yearOffset][i];
+                good_tmin_count[i]++;
+            }
+        }
+    }
+        
+
+    // take the average
+    for (var i=0; i<365; i++) {
+        if (good_tmax_count[i] > 0) {
+            tmax_avg[i] = tmax_avg[i]/good_tmax_count[i];
+        }
+        if (good_tmin_count[i] > 0) {             
+            tmin_avg[i] = tmin_avg[i]/good_tmin_count[i];
+        }
+    }
+
+    console.log(tmin_avg);
+    
+    var smoother = smooth_timeseries_gaussian([15],tmax_avg,"summer");
+    var summer_teletherm_date = smoother.teletherm_dates[0];
+    var summer_teletherm_extent = smoother.teletherm_extents[0];
+    var tmax_smoothed_js  = smoother.smoothed_timeseries[0];
+
+    smoother = smooth_timeseries_gaussian([15],tmin_avg,"winter");
+    var winter_teletherm_date = smoother.teletherm_dates[0];
+    var winter_teletherm_extent = smoother.teletherm_extents[0];
+    var tmin_smoothed_js  = smoother.smoothed_timeseries[0];
+    
+    console.log("will now plot the city data");
 
     var figure = d3.select("#station1");
     
-    var margin = {top: 2, right: 0, bottom: 50, left: 50};
+    var margin = {top: 40, right: 10, bottom: 40, left: 50};
 
     // full width and height
     var figwidth  = parseInt(figure.style("width"));
-    var figheight = 600; // figwidth*1.2;
+    var figheight = figwidth*0.5;
     // don't shrink this
     var width = figwidth - margin.left - margin.right;
     // tiny bit of space
@@ -306,11 +389,11 @@ var cityPlot = function(error,results) {
 	.attr("height", figheight);
 
     var x_max = d3.scale.linear()
-	.domain([1,365+183])
+	.domain([1,365+181])
 	.range([0,width]);
 
     var x_min = d3.scale.linear()
-	.domain([1-183,365])
+	.domain([1-181,365+181-181])
 	.range([0,width]);
 
     var y =  d3.scale.linear()
@@ -321,7 +404,7 @@ var cityPlot = function(error,results) {
     // create the axes themselves
     var axes = canvas.append("g")
 	.attr("transform", "translate(" + (margin.left) + "," +
-	      ((0) * figheight) + ")") // 99 percent
+	      (margin.top) + ")") // 99 percent
 	.attr("width", width)
 	.attr("height", height)
 	.attr("class", "main");
@@ -338,14 +421,23 @@ var cityPlot = function(error,results) {
     var create_xAxis = function() {
 	return d3.svg.axis()
 	    .scale(x_max)
-	    .ticks(9)
+            .tickValues(month_lengths_cum_18_forward)
+            .tickFormat(function(d,i) { return month_names[i % 12].slice(0,3) + " 1"; })
 	    .orient("bottom"); }
+
+    // axes creation functions
+    var create_xAxis_2 = function() {
+	return d3.svg.axis()
+	    .scale(x_min)
+            .tickValues(month_lengths_cum_18_backward)
+            .tickFormat(function(d,i) { return month_names[i % 12].slice(0,3) + " 1"; })
+	    .orient("top"); }    
 
     // axis creation function
     var create_yAxis = function() {
 	return d3.svg.axis()
 	    .ticks(5)
-	    .scale(y) //linear scale function
+            	    .scale(y) //linear scale function
 	    .orient("left"); }
 
     // draw the axes
@@ -370,28 +462,92 @@ var cityPlot = function(error,results) {
 	.attr("transform", "translate(0," + (height) + ")")
 	.call(xAxis);
 
+        // draw the axes
+    var xAxis_2 = create_xAxis_2()
+	.innerTickSize(6)
+	.outerTickSize(0);
+
+    axes.append("g")
+	.attr("class", "x axis ")
+	.attr("font-size", "14.0px")
+	.attr("transform", "translate(0," + (0) + ")")
+	.call(xAxis_2);
+
+    d3.selectAll(".tick line").style("stroke","black");
+
+    d3.selectAll(".tick text").style("font-size",10);    
+
+    var xlabel_text = "Summer Teletherm Day";
+    var xlabel = canvas.append("text")
+	.text(xlabel_text)
+	.attr("class","axes-text")
+	.attr("x",margin.left+width/2)  
+	.attr("y",figheight-5)
+	.attr("font-size", "15.0px")
+	.attr("fill", "#000000")
+	.attr("style", "text-anchor: middle;");
+
+    
+    var xlabel_text = "Winter Teletherm Day";
+    var xlabel = canvas.append("text")
+	.text(xlabel_text)
+	.attr("class","axes-text")
+	.attr("x",margin.left+width/2)  
+	.attr("y",14)
+	.attr("font-size", "15.0px")
+	.attr("fill", "#000000")
+	.attr("style", "text-anchor: middle;");
+
+    var ylabel_text = "Temperature";
+    var ylabel = canvas.append("text")
+	.text(ylabel_text)
+	.attr("class","axes-text")
+	.attr("x",18)
+	.attr("y",figheight/2)
+	.attr("font-size", "15.0px")
+	.attr("fill", "#000000")
+	.attr("transform", "rotate(-90.0," + (18) + "," + (figheight/2) + ")");    
+
     var line_max = d3.svg.line()
 	.x(function(d,i) { return x_max(i+1); })
 	.y(function(d) { return y(d); })
 	.interpolate("linear"); // cardinal
 
     var line_min = d3.svg.line()
-	.x(function(d,i) { return x_min(i+1-365); })
+	.x(function(d,i) { return x_min(i+1-181); })
 	.y(function(d) { return y(d); })
 	.interpolate("linear"); // cardinal    
 
-    // for (var i=0; i<bws.length; i++) {
-    //     axes.append("path")
-    //         .datum(summer_bwssaved[i])
-    //         .attr("class", "linejs")
-    //         .attr("d", line_max)
-    //         .attr("stroke","red")
-    //         .attr("stroke-width",2)
-    //         .attr("fill","none");
-    // }
+    var area_max = d3.svg.area()
+	.x(function(d,i) { return x_max(i+summer_teletherm_extent[0]+1); })
+	.y0(function(d) { return height; })
+	.y1(function(d) { return y(d); })    
+	.interpolate("linear"); // cardinal
+
+    var area_min = d3.svg.area()
+	.x(function(d,i) { return x_min(i+winter_teletherm_extent[0]+1); })
+	.y0(function(d) { return 0; })
+	.y1(function(d) { return y(d); })    
+	.interpolate("linear"); // cardinal
 
     axes.append("path")
-        .datum(tmax_smoothed_js)
+        .datum(tmax_smoothed_js.slice(summer_teletherm_extent[0],summer_teletherm_extent[1]))
+        .attr("class", "linejs")
+        .attr("d", area_max)
+        .attr("stroke","black")
+        .attr("stroke-width",0.5)
+        .attr("fill","lightgrey");
+
+    axes.append("path")
+        .datum(tmin_smoothed_js.slice(winter_teletherm_extent[0],winter_teletherm_extent[1]))
+        .attr("class", "linejs")
+        .attr("d", area_min)
+        .attr("stroke","black")
+        .attr("stroke-width",0.5)
+        .attr("fill","lightgrey");    
+
+    axes.append("path")
+        .datum([].concat(tmax_smoothed_js,tmax_smoothed_js.slice(0,181)))
         .attr("class", "linejs")
         .attr("d", line_max)
         .attr("stroke","red")
@@ -399,7 +555,7 @@ var cityPlot = function(error,results) {
         .attr("fill","none");
 
     axes.append("path")
-        .datum(tmin_smoothed_js)
+        .datum([].concat(tmin_smoothed_js.slice(184),tmin_smoothed_js))
         .attr("class", "linepeter")
         .attr("d", line_min)
         .attr("stroke","blue")
@@ -407,22 +563,94 @@ var cityPlot = function(error,results) {
         .attr("fill","none");
 
     axes.selectAll("circle.avgmaxtemp")
-	.data([].concat(tmax_avg,tmax_avg))
+	.data([].concat(tmax_avg,tmax_avg.slice(0,181)))
 	.enter()
 	.append("circle")
-	.attr({ "cx": function(d,i) { return x_max(i); },
+	.attr({ "cx": function(d,i) { return x_max(i+1); },
 		"cy": function(d,i) { return y(d); },
 		"r": 2,
 	      });
 
     axes.selectAll("circle.avgmintemp")
-	.data([].concat(tmin_avg,tmin_avg))
+	.data([].concat(tmin_avg.slice(184),tmin_avg))
 	.enter()
 	.append("circle")
-	.attr({ "cx": function(d,i) { return x_min(i-365); },
+	.attr({ "cx": function(d,i) { return x_min(i+1-181); },
 		"cy": function(d,i) { return y(d); },
 		"r": 2,
 	      });
+    
+    axes.append("line")
+	.attr({ "x1": x_max(summer_teletherm_date+1),
+		"y1": height,
+		"x2": x_max(summer_teletherm_date+1),
+                "y2": y(tmax_smoothed_js[summer_teletherm_date]),
+                "class": "summerteleline",
+	      })
+        .style({
+            "stroke": "black",
+            "stroke-width": 2,
+        });
+
+    axes.append("line")
+	.attr({ "x1": x_min(winter_teletherm_date+1),
+		"y1": 0,
+		"x2": x_min(winter_teletherm_date+1),
+                "y2": y(tmin_smoothed_js[winter_teletherm_date]),
+                "class": "winterteleline",
+	      })
+        .style({
+            "stroke": "black",
+            "stroke-width": 2,
+        });
+
+    // format the summer teletherm day
+    // with our fixed months
+    var month = 0;
+    while (summer_teletherm_date > month_lengths_cum[month]) {
+        month+=1;
+    }
+    console.log(month);
+    var day = summer_teletherm_date-month_lengths_cum[month-1]+1;
+    console.log(day);
+    
+    axes.append("text")
+        .attr({
+            "x": function(d,i) { return x_max(summer_teletherm_extent[0]+1)-5; },
+            "y": height-30,
+            "transform": function(d,i) { return "rotate(-90 "+(x_max(summer_teletherm_extent[0]+1)-5)+","+(height-30)+")"; },
+        })
+        .style({
+            // "stroke": "black",
+            "text-align": "left",
+            "font-size": 11,
+        })    
+        .text("Summer Teletherm: "+month_names[month-1].slice(0,3)+" "+day+" (day "+summer_teletherm_date+"), "+(summer_teletherm_extent[1]-summer_teletherm_extent[0])+" day extent")
+
+    // format the summer teletherm day
+    // with our fixed months
+    month = 0;
+    while (winter_teletherm_date > month_lengths_cum[month]) {
+        month+=1;
+    }
+    day = winter_teletherm_date-month_lengths_cum[month-1]+1;
+    
+    axes.append("text")
+        .attr({
+            "x": function(d,i) { return x_min(winter_teletherm_extent[0]+1)-5; },
+            // "y": y([].concat(tmax_smoothed_js,tmax_smoothed_js)[winter_teletherm_extent[0]+181])-60,
+            // "transform": function(d,i) { return "rotate(-90 "+(x_min(winter_teletherm_extent[0]+1)-5)+","+(y([].concat(tmax_smoothed_js,tmax_smoothed_js)[winter_teletherm_extent[0]+181])-60)+")"; },
+            "y": 290,
+            "transform": function(d,i) { return "rotate(-90 "+(x_min(winter_teletherm_extent[0]+1)-5)+","+290+")"; },
+        })
+        .style({
+            // "stroke": "black",
+            "text-align": "right",
+            "font-size": 11,
+        })    
+        .text("Winter Teletherm: "+month_names[month-1-6].slice(0,3)+" "+day+" (day "+winter_teletherm_date+"), "+(winter_teletherm_extent[1]-winter_teletherm_extent[0])+" day extent")    
+
+
     
     // move the screen down to this
     // document.getElementById('station1').focus();
@@ -431,6 +659,9 @@ var cityPlot = function(error,results) {
 }
 
 $("#yearbuttons input").click(function() {
+    console.log("calling updatewindow()");
+    updatewindow(1000);
+    
     console.log($(this).val());
     currentWindow = $(this).val();
     windowEncoder.varval(currentWindow);
@@ -442,12 +673,28 @@ $("#yearbuttons input").click(function() {
     else {
         var padded_year = my_year;
     }
+
+    // need to get the extent in there too
+    if (variableDecoder().cached === "summer_day")
+    {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached.replace("day","extent")+".txt")        
+	    .awaitAll(updateMap);
+    }
+    else if (variableDecoder().cached === "winter_day")
+    {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached.replace("day","extent")+".txt")                
+	    .awaitAll(updateMap);
+    }
+    else {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .awaitAll(updateMap);
+    }
     
-    queue()
-    // teledata-{1,10,20,50}y-{maxT,minT,summer_day,winter_day,summer_extent,winter_extent}.csv
-	// .defer(d3.text,"/data/teledata/teledata-"+windowDecoder().cached+"y-"+variableDecoder().cached+".csv")
-	.defer(d3.text,"/data/teledata/dynamics/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")        
-	.awaitAll(updateMap);
 });
 
 $("#variabledrop a").click(function() {
@@ -467,13 +714,28 @@ $("#variabledrop a").click(function() {
     else {
         var padded_year = my_year;
     }
-    queue()
-        // teledata-{1,10,20,50}y-{maxT,minT,summer_day,winter_day,summer_extent,winter_extent}.csv
-        // fake data
-        // .defer(d3.text,"/data/teledata/teledata-"+currentWindow+"y-"+variableShort[variableIndex]+".csv")
-        // real data
-	.defer(d3.text,"/data/teledata/dynamics/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")    
-	.awaitAll(updateMap);
+    
+    // need to get the extent in there too
+    if (variableDecoder().cached === "summer_day")
+    {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached.replace("day","extent")+".txt")        
+	    .awaitAll(updateMap);
+    }
+    else if (variableDecoder().cached === "winter_day")
+    {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached.replace("day","extent")+".txt")                
+	    .awaitAll(updateMap);
+    }
+    else {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .awaitAll(updateMap);
+    }
+    
 });
 
         // $("#yeardrop a").click(function() {
@@ -486,6 +748,7 @@ var cities;
 var citygroups;
 var cityarrows;
 var data;
+var extradata = [];
 
 // special color scale for maxT
 var maxTcolor = function(i) { 
@@ -494,7 +757,8 @@ var maxTcolor = function(i) {
 
 // diverging red blue color map from colorbrewer
 var divredbluerev = ["#67001f","#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#var"];
-var divredblue = ["#053061","#2166ac","#4393c3","#92c5de","#d1e5f0","#f7f7f7","#fddbc7","#f4a582","#d6604d","#b2182b","#67001f",];
+// var divredblue = ["#053061","#2166ac","#4393c3","#92c5de","#d1e5f0","#f7f7f7","#fddbc7","#f4a582","#d6604d","#b2182b","#67001f",];
+var divredblue = ['rgb(165,0,38)','rgb(215,48,39)','rgb(244,109,67)','rgb(253,174,97)','rgb(254,224,144)','rgb(255,255,191)','rgb(171,217,233)','rgb(116,173,209)','rgb(69,117,180)','rgb(49,54,149)','rgb(44,46,108)'].reverse();
 
 var summerTScale = d3.scale.quantize()
     // celsius domain
@@ -507,9 +771,15 @@ var angle_offset = 0;
 
 var updateMap = function(error,results) {
     console.log("update the map!");
-    // console.log("here is the result from queue:");
-    // console.log(data);
+    console.log("here is the result from queue:");
+    console.log(results);
     data = results[0].split("\n");
+    if (results.length > 1) {
+        extradata = results[1].split("\n").map(function(d) { return d.split(" ").map(parseFloat); });
+    }
+    else {
+        extradata = [];
+    }
     // console.log("first result split on newlines:");
     // console.log(data);
     data = data.map(function(d) { return d.split(" ").map(parseFloat); });
@@ -535,15 +805,17 @@ var updateMap = function(error,results) {
 	.enter()
         .append("li")
         .append("a")
-	.text(function(d) { return d; })
+	.text(function(d) { return d+""+"&ndash;"+(d+parseInt(windowDecoder().cached)); })
+    
         .on("click",function(d,i) {
 	    yearIndex = i;
+            console.log(yearIndex);
 	    // yearEncoder.varval(yearIndex.toFixed(0));
-            yearEncoder.varval(d);
+            yearEncoder.varval(allyears[i]+"");
 	    changeYear();
             if (yearIndex < allyears.length) {
 	        var play_button = d3.select("#playButton")
-                play_button.attr("class","btn btn-default disabled");
+                play_button.attr("class","btn btn-default");
                 // play_button.select("i").attr("class","fa fa-play");
             }            
 	})
@@ -569,11 +841,14 @@ var updateMap = function(error,results) {
     // console.log("variableIndex="+variableIndex);    
     // draw a scale on the map
     // only need the circular scale for days of the year
-    if (variableIndex < 2) {
-        drawScale(variableRanges[variableIndex],"polar");
-    }
-    else {
-        drawScale(variableRanges[variableIndex],"linear");
+    var pagewidth = parseInt(d3.select("#station1").style("width"));
+    if (pagewidth > 600) {
+        if (variableIndex < 2) {
+            drawScale(variableRanges[variableIndex],"polar");
+        }
+        else {
+            drawScale(variableRanges[variableIndex],"linear");
+        }
     }
 }
 
@@ -599,19 +874,34 @@ var play = function() {
 }
 
 var changeYear = function() {
+    var loop = true;
+    var update_time = 1000;
     if (yearIndex > allyears.length-1) {
-	clearInterval(playTimer);
-	var play_button = d3.select("#playButton")
-        play_button.attr("class","btn btn-default disabled");
-        play_button.select("i").attr("class","fa fa-play");
-	playing = false;
-	yearIndex--;
-	return 0;
+        if (loop) {
+            yearIndex = 0;
+            updatetime = 3000;
+        }
+        else{
+	    clearInterval(playTimer);
+	    var play_button = d3.select("#playButton")
+            play_button.attr("class","btn btn-default disabled");
+            play_button.select("i").attr("class","fa fa-play");
+	    playing = false;
+	    yearIndex--;
+	    return 0;
+        }
     }
+
+    
     // console.log("changing year index to");
     // console.log(yearIndex);
     // console.log(allyears[yearIndex]);
-    $("#yeardropvis").html(allyears[yearIndex]+" <span class=\"caret\"></span>");
+    $("#yeardropvis").html(allyears[yearIndex]+""+"&ndash;"+(allyears[yearIndex]+parseInt(windowDecoder().cached))+" <span class=\"caret\"></span>");
+    yearEncoder.varval(allyears[yearIndex]+"");
+    
+
+    console.log("calling updatewindow()");
+    updatewindow(update_time);
 
     cities.attr("fill",function(d,i) {
         if (data[i+1][yearIndex] > -9998) {
@@ -623,7 +913,25 @@ var changeYear = function() {
         .attr("value",function(d,i) {
             return data[i+1][yearIndex];
         });
-    
+
+    if (extradata.length > 0) {
+        cities.attr("r",function(d,i) {
+            if (extradata[i+1][yearIndex] > -9998) {
+                return Math.sqrt(extradata[i+1][yearIndex]);
+            }
+            else {
+                return rmin;
+            }})
+            .attr("extravalue",function(d,i) {
+                return extradata[i+1][yearIndex];
+            });
+    }
+    else {
+        cities.attr("r",function(d,i) {
+                return rmin;
+        });
+    }
+
     cities.style("visibility",function(d,i) {
         if (data[i+1][yearIndex] > -9998) {
             return "visible";
@@ -665,7 +973,7 @@ var drawScale = function(extent,type) {
     // console.log(extent);
     var legendwidth = 200;
     var legendheight = 20;
-    var legendradius = 30;
+    var legendradius = 50;
     // var legendwidth = 50;
     var textsize = 10;
     var legendarray = Array(divredblue.length);
@@ -710,16 +1018,16 @@ var drawScale = function(extent,type) {
     else {
 	var legendgroup = canvas.append("g")
 	    .attr({"class": "legendgroup",
-		   "transform": "translate("+(w-20-legendradius)+","+(h-legendradius-20)+")",});
+		   "transform": "translate("+(w-20-legendradius)+","+(h-legendradius-30)+")",});
 
 	var arc = d3.svg.arc()
-	    .outerRadius(legendradius)
+	    .outerRadius(legendradius-5)
 	    .innerRadius(0);
 
 	var pie = d3.layout.pie()
 	    .sort(null)
-	    .startAngle(extent[0]/365*2*Math.PI)
-	    .endAngle(extent[1]/365*2*Math.PI)
+	    .startAngle((extent[0]-1)/365*2*Math.PI)
+	    .endAngle((extent[1]-1)/365*2*Math.PI)
 	    .value(function(d) { return d; });
 
 	legendgroup.selectAll(".arc")
@@ -729,12 +1037,170 @@ var drawScale = function(extent,type) {
 	    .attr({"d": arc,
 		   "fill": function(d,i) { return divredblue[i]; },
 		  });
+
+        // now go and convert all of the dates to an angle
+        var radial_scale = d3.scale.linear()
+            .domain([1,365/4+1])
+            .range([Math.PI/2,0]);
+
+        var rotation_scale = d3.scale.linear()
+            .domain([1,365/4+1])
+            .range([90,180]);
+
+        // let's linspace out the ticks
+        var increments = Array(divredblue.length+1);
+        var increments_moved = Array(divredblue.length+1);        
+        var spacing = (extent[1]-extent[0])/(increments.length-1);
+        for (var i=0; i<increments.length; i++) {
+            increments[i] = extent[0]+i*spacing;
+            increments_moved[i] = extent[0]+i*spacing-spacing/4;
+        }
+        console.log("increments:");
+        console.log(increments);
+        
+        legendgroup.selectAll(".label")
+	    .data(increments_moved)
+	    .enter()
+	    .append("text")
+	    .attr({ // "text-align": "right",
+                   "x": function(d,i) { return (legendradius+25)*Math.cos(radial_scale(((d + 365/4) % 365) - 365/4) ); },
+                   "y": function(d,i) { return -(legendradius+25)*Math.sin(radial_scale(((d + 365/4) % 365) - 365/4)); },
+                // "transform": function(d,i) { return "rotate("+(((rotation_scale(((d + 365/4) % 365) - 365/4) + 90) % 180) -90)+" "+((legendradius+25)*Math.cos(radial_scale(((d + 365/4) % 365) - 365/4) ))+","+(-(legendradius+25)*Math.sin(radial_scale(((d + 365/4) % 365) - 365/4)))+")"; },
+                "transform": function(d,i) { return "rotate("+(rotation_scale(((d + 365/4) % 365) - 365/4))+" "+((legendradius+25)*Math.cos(radial_scale(((d + 365/4) % 365) - 365/4) ))+","+(-(legendradius+25)*Math.sin(radial_scale(((d + 365/4) % 365) - 365/4)))+")"; },
+		  })
+            .style({"font-size": "8px"})
+            .text(function(d,i) { 
+                var date = new Date(1900,0,1);
+                date.setTime( date.getTime() + increments[i] * 86400000 );
+                if ( date.getDate() < 10 ) {
+                    return month_names[date.getMonth()].slice(0,3)+" 0"+date.getDate();
+                }
+                else {
+                    return month_names[date.getMonth()].slice(0,3)+" "+date.getDate();
+                }
+            });
+        
+        legendgroup.selectAll(".tick")
+	    .data(increments)
+	    .enter()
+	    .append("line")
+	    .attr({
+                   "x1": function(d,i) { return (legendradius-5)*Math.cos(radial_scale(((d + 365/4) % 365) - 365/4) ); },
+                   "y1": function(d,i) { return -(legendradius-5)*Math.sin(radial_scale(((d + 365/4) % 365) - 365/4) ); },
+                   "x2": function(d,i) { return (legendradius)*Math.cos(radial_scale(((d + 365/4) % 365) - 365/4) ); },
+                   "y2": function(d,i) { return -(legendradius)*Math.sin(radial_scale(((d + 365/4) % 365) - 365/4) ); },
+		  })
+                .style({
+            "stroke": "black",
+            "stroke-width": 1,            
+        });
     }
 }
 
 var w;
 var h;
 var canvas;
+
+var plot_timeline = function() {
+
+    var figure = d3.select("#timeline");
+    
+    var margin = {top: 0, right: 10, bottom: 0, left: 10};
+
+    // full width and height
+    var figwidth  = parseInt(figure.style("width"));
+    var figheight = 20;
+    var width = figwidth - margin.left - margin.right;
+    var height = figheight - margin.top - margin.bottom;
+
+    // remove an old figure if it exists
+    figure.select(".canvas").remove();
+
+    //Create SVG element
+    var canvas = figure
+	.append("svg")
+	.attr("class", "canvas")
+	.attr("id", "timelinesvg")
+	.attr("width", figwidth)
+	.attr("height", figheight);
+
+    var x = d3.scale.linear()
+	.domain([full_year_range[0],full_year_range[full_year_range.length-1]])
+	.range([10,width-10]);
+
+    var y =  d3.scale.linear()
+	// .domain([-30,130]) // summer temps
+	.domain([0,1])
+	.range([0,height]);
+
+    var centerline = canvas.append("line")
+        .attr({
+            "x1": x(1900),
+            "y1": y(0.25),
+            "x2": x(2013),
+            "y2": y(0.25),
+        })
+        .style({
+            "stroke": "black",
+            "stroke-width": 2,            
+        });
+
+    var ticks = canvas.selectAll("line.yeartick")
+        .data([1900,1905,1910,1915,1920,1925,1930,1935,1940,1945,1950,1955,1960,1965,1970,1975,1980,1985,1990,1995,2000,2005,2010,2013])
+        .enter()
+        .append("line")
+        .attr({
+            "x1": function(d,i) { return x(d); },
+            "y1": y(0.0),
+            "x2": function(d,i) { return x(d); },
+            "y2": y(0.5),
+        })
+        .style({
+            "stroke": "black",
+            "stroke-width": 1,            
+        });
+
+    var ticklabels = canvas.selectAll("line.yearticklabel")
+        .data([1900,1905,1910,1915,1920,1925,1930,1935,1940,1945,1950,1955,1960,1965,1970,1975,1980,1985,1990,1995,2000,2005,2010,2013])
+        .enter()
+        .append("text")
+        .attr({
+            "x": function(d,i) { return x(d-1.3); },
+            "y": height-2,
+        })
+        .style({
+            // "stroke": "black",
+            "text-align": "center",
+            "font-size": 9,
+        })
+        .text(function(d) { return d; });
+    
+
+    var curr_window = canvas.append("rect")
+        .attr({
+            "x": x(full_year_range[yearIndex]),
+            "y": y(0.0),
+            "width": x(parseFloat(currentWindow)+full_year_range[0])-x(full_year_range[0]),
+            "height": y(0.5),
+            "class": "currentwindow",
+        })
+        .style({
+            "border": "blue",
+            "fill": "blue",
+            "opacity": 0.5,
+        });
+
+    updatewindow = function(t) {
+        console.log("updating the window");
+        console.log(yearIndex);
+        // curr_window.transition().duration(t).attr("x",x(full_year_range[yearIndex]));
+        curr_window.transition().attr("x",x(full_year_range[yearIndex]))
+            .attr("width",x(parseFloat(currentWindow)+full_year_range[0])-x(full_year_range[0]));
+    }
+    
+    // currentWindow
+    // yearIndex
+}
 
 var dataloaded = function(error,results) { 
     // console.log("map data loaded, these are the results (should just be the geojson in a list of length 1):");
@@ -748,7 +1214,7 @@ var dataloaded = function(error,results) {
 
     var fisheye = d3.fisheye.circular()
         .radius(4)
-        .distortion(2);
+        .distortion(3);
     
     var figure = d3.select("#map");
     
@@ -766,10 +1232,10 @@ var dataloaded = function(error,results) {
 	.attr("id", "mapsvg")
 	.attr("width", w)
 	.attr("height", h);
-
+    
     projection = d3.geo.albersUsa()
 	.translate([w/2, h/2-10])
-	.scale(w*1.37);
+	.scale(w*1.2); // 1.37 is max size
 
     var path = d3.geo.path()
 	.projection(projection);
@@ -789,8 +1255,7 @@ var dataloaded = function(error,results) {
     // 	.attr("stroke","black")
     // 	.attr("stroke-width",".7");
 
-    var rmin = "4";
-    var rmax = "6";
+
 
     var popuptimer;
 
@@ -808,7 +1273,7 @@ var dataloaded = function(error,results) {
     function hidehover() {
 	// console.log("hiding hover");
         canvas.selectAll("circle").transition().duration(500).style("opacity","1.0");
-	canvas.selectAll("circle").attr("r",rmin);        
+	// canvas.selectAll("circle").attr("r",rmin);
         canvas.selectAll("line").transition().duration(500).style("opacity","1.0");        
 	hovergroup.style({
 	    "visibility": "hidden",
@@ -817,7 +1282,7 @@ var dataloaded = function(error,results) {
 
     var city_hover = function(d,i) {
 	// console.log(this);
-	d3.select(this).select("circle").attr("r",rmax);
+	// d3.select(this).select("circle").attr("r",rmax);
         
 
 	// canvas.selectAll("circle").transition().duration(500).style("opacity","0.1");
@@ -871,28 +1336,29 @@ var dataloaded = function(error,results) {
 	    .text(city_name);
 
         hovergroup.append("p")
-            .text(variableHover[variableIndex]);
-        
-	hovergroup.append("p")
-            .html(allyears[yearIndex]+"&ndash;"+(parseFloat(windows[windowIndex])+allyears[yearIndex]));
+            .html(variableHover[variableIndex]+" from "+allyears[yearIndex]+"&ndash;"+(parseFloat(windows[windowIndex])+allyears[yearIndex])+": ");
 
         if (variableIndex < 2) {
             // go convert the day to an actual date
-            var teletherm_day = (data[parseFloat(d[0])+1][yearIndex]+angle_offset);
+            var teletherm_day = (data[parseFloat(d[0])][yearIndex]+angle_offset);
             var date = new Date(1900,0,1);
             date.setTime( date.getTime() + teletherm_day * 86400000 );
-            var monthNames = ["January", "February", "March", "April", "May", "June",
-                              "July", "August", "September", "October", "November", "December"
-                             ];
-            // console.log(d);
+            
+            var teletherm_extent = extradata[parseFloat(d[0])][yearIndex];
+            if (teletherm_extent === -9999) {
+                teletherm_extent = "unknown";
+            }
 	    hovergroup.append("p")
-                .text(monthNames[date.getMonth()]+" "+date.getDate());            
+                .text(month_names[date.getMonth()]+" "+date.getDate()+", with "+teletherm_extent+" day extent.");
 
         }
         else {
             hovergroup.append("p")
-                .html(data[parseFloat(d[0])+1][yearIndex].toFixed(2)+" degrees");
+                .html(data[parseFloat(d[0])][yearIndex].toFixed(2)+" degrees F.");
         }
+
+        hovergroup.append("p")
+            .html("Click the city for more info.");
 
         // clearTimeout(popuptimer);
 	// popuptimer = setTimeout(hidehover,10000);
@@ -918,24 +1384,16 @@ var dataloaded = function(error,results) {
         for (var i=0; i<proper_city_name.length; i++) {
             proper_city_name[i] = proper_city_name[i][0].toUpperCase() + proper_city_name[i].slice(1).toLowerCase();
         }
-        var city_name = [proper_city_name.join(" "),city_name_split[1]].join(",")+" (all data combined):";
+        var city_name = [proper_city_name.join(" "),city_name_split[1]].join(",")+" ("+allyears[yearIndex]+"&ndash;"+(allyears[yearIndex]+parseInt(windowDecoder().cached))+"):";
 
         // alert("you clicked on the station at "+city_name);
         document.getElementById("stationname").innerHTML = city_name;
-        
 	console.log(d[0]);
         
-	
-	queue()
-	    .defer(d3.text,"/data/teledata/stations/tmax_boxplot_0"+d[0]+".txt")
-	    .defer(d3.text,"/data/teledata/stations/tmax_0"+d[0]+".txt")
-	    .defer(d3.text,"/data/teledata/stations/tmax_smoothed_0"+d[0]+".txt")
-	    .defer(d3.text,"/data/teledata/stations/tmax_coverage_0"+d[0]+".txt")
-	    .defer(d3.text,"/data/teledata/stations/tmin_boxplot_0"+d[0]+".txt")
-	    .defer(d3.text,"/data/teledata/stations/tmin_0"+d[0]+".txt")
-	    .defer(d3.text,"/data/teledata/stations/tmin_smoothed_0"+d[0]+".txt")
-	    .defer(d3.text,"/data/teledata/stations/tmin_coverage_0"+d[0]+".txt")
-	    .awaitAll(cityPlot);
+        queue()
+            .defer(d3.text,"/data/teledata/stations/tmax_0"+d[0]+".txt")
+            .defer(d3.text,"/data/teledata/stations/tmin_0"+d[0]+".txt")
+            .awaitAll(cityPlot);
     };
 
     citygroups = canvas.selectAll("circle.city")
@@ -955,7 +1413,7 @@ var dataloaded = function(error,results) {
 	    "class": "city",
 	    "cx": 0,
 	    "cy": 0,
-	    "r": rmin,
+	    // "r": rmin,
 	})
         .on("mousedown",city_clicked);
 
@@ -975,15 +1433,29 @@ var dataloaded = function(error,results) {
         var padded_year = my_year;
     }
 
+    console.log("plotting timeline");
+    plot_timeline(); 
     console.log("queueing up the data for the circles on the map");
 
-    queue()
-        // teledata-{1,10,20,50}y-{maxT,minT,summer_day,winter_day,summer_extent,winter_extent}.csv
-	// .defer(d3.text,"/data/teledata/teledata-"+windowDecoder().cached+"y-"+variableDecoder().cached+".csv")
-	// .defer(d3.text,"/data/teledata/teledata-"+windowDecoder().cached+"y-"+variableDecoder().cached+".csv")    
-        // .defer(d3.text,"/data/teledata/teledata-"+currentWindow+"y-"+variableShort[variableIndex]+".csv")
-        .defer(d3.text,"/data/teledata/dynamics/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")            
-	.awaitAll(updateMap);
+    if (variableDecoder().cached === "summer_day")
+    {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached.replace("day","extent")+".txt")        
+	    .awaitAll(updateMap);
+    }
+    else if (variableDecoder().cached === "winter_day")
+    {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached.replace("day","extent")+".txt")                
+	    .awaitAll(updateMap);
+    }
+    else {
+        queue()
+	    .defer(d3.text,"/data/teledata/dynamics-1900/telethermdata-"+padded_year+"years-"+variableDecoder().cached+".txt")
+	    .awaitAll(updateMap);
+    }    
 
     console.log("drawing the city data");
     

@@ -42,4 +42,8 @@ div.variableselection {
 div.yearselection {
     display: inline-block;
     padding-left: 40px
-}    
+}
+
+div#timeline {
+    padding-top: 10px;
+}
