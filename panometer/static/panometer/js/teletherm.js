@@ -87,8 +87,6 @@ var city_clicked_initial_load = function(d) {
     //     .awaitAll(cityPlot);
 
     queue()
-        .defer(d3.text,"/data/teledata/stations/tmax_0"+d[0]+".txt")
-        .defer(d3.text,"/data/teledata/stations/tmin_0"+d[0]+".txt")
         .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_values_combined.txt")
         .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_years_combined.txt")
         .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-wrapped_tmin_values_combined.txt")
@@ -194,13 +192,40 @@ var smooth_timeseries_gaussian = function(windows,t,season) {
 	teletherm_dates[i] = smoothed_timeseries[i].indexOf(T_teletherm)+1;
         
         // then look out for the days within 2% of that temperature range
-        teletherm_extents[i] = [teletherm_dates[i]-1,teletherm_dates[i]+1];
-        while (Math.abs(smoothed_timeseries[i][teletherm_extents[i][0]] - T_teletherm) < .02*range_t) { teletherm_extents[i][0]--; }
-        while (Math.abs(smoothed_timeseries[i][teletherm_extents[i][1]] - T_teletherm) < .02*range_t) { teletherm_extents[i][1]++; }
+        // now it's a list of length 1
+        teletherm_extents[i] = [[teletherm_dates[i]-1,teletherm_dates[i]+1]];
+        var all_extent_days = [];
+        for (var j=0; j<smoothed_timeseries[i].length; j++) {
+            if (Math.abs(smoothed_timeseries[i][j] - T_teletherm) < .02*range_t) {
+                all_extent_days.push(j);
+            }
+        }
+        console.log(all_extent_days);
+        // now go find the intervals in all the days
+        // start the first interval
+        teletherm_extents[i][0][0] = all_extent_days[0];
+        for (var j=1; j<all_extent_days.length; j++) {
+            if ((all_extent_days[j]-all_extent_days[j-1]) !== 1) {
+                // end the previous interval
+                teletherm_extents[i][teletherm_extents[i].length-1][1] = all_extent_days[j-1];
+                // start another
+                teletherm_extents[i].push([all_extent_days[j],all_extent_days[j]]);
+            }
+        }
+        // end the last interval
+        teletherm_extents[i][teletherm_extents[i].length-1][1] = all_extent_days[all_extent_days.length-1];
     }
 
     return {"smoothed_timeseries": smoothed_timeseries, "teletherm_dates": teletherm_dates, "teletherm_extents": teletherm_extents,};
 }
+
+// declare these globally (shoot me)
+var tmin_avg,tmax_avg,summer_teletherm_extent,winter_teletherm_extent,tmax_smoothed_js,tmin_smoothed_js,summer_teletherm_date,winter_teletherm_date;
+
+var tmax_raw;
+var tmax_raw_years;
+var tmin_raw;
+var tmin_raw_years;
 
 var cityPlot = function(error,results) {
     // function(i) {
@@ -210,28 +235,6 @@ var cityPlot = function(error,results) {
 
     // just for reference, these are the files that are being loaded
     // 
-    // .defer(d3.text,"/data/teledata/stations/tmax_boxplot_0"+d[0]+".txt")
-    // this file has 5 lines
-    // each line is max,Q3,median,Q1,min
-    // 
-    // .defer(d3.text,"/data/teledata/stations/tmax_0"+d[0]+".txt")
-    // this file has 1 line
-    // it's the average T
-    //
-    // .defer(d3.text,"/data/teledata/stations/tmax_smoothed_0"+d[0]+".txt")
-    // this file has 2 lines
-    // first line is the days, 1-365, and the second line is smoothed T
-    //
-    // .defer(d3.text,"/data/teledata/stations/tmax_coverage_0"+d[0]+".txt")
-    // this has two lines
-    // first line is the years, started with the first year there is coverage
-    // second year is the coverage from those years.
-    //
-    // .defer(d3.text,"/data/teledata/stations/tmin_boxplot_0"+d[0]+".txt")
-    // .defer(d3.text,"/data/teledata/stations/tmin_0"+d[0]+".txt")
-    // .defer(d3.text,"/data/teledata/stations/tmin_smoothed_0"+d[0]+".txt")
-    // .defer(d3.text,"/data/teledata/stations/tmin_coverage_0"+d[0]+".txt")
-
     // .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_values_combined.txt")
     // this one has the values for each day in the year, with rows as the years, and values going across
     //
@@ -245,40 +248,9 @@ var cityPlot = function(error,results) {
 
     // get out the data I want
 
-    // only really need these
-    // var tmax_avg;
-    // var tmin_avg;
-
-    var split_results_precomputed_all = function() {
-        // tmax_boxplot = results[0].split("\n").slice(0,5).map(function(d) { return d.split(" ").map(parseFloat); });
-        // tmax_median = tmax_boxplot[2];
-        tmax_avg = results[1].split(" ").map(parseFloat);
-        // tmax_smoothed_days = results[2].split("\n")[0].split(" ").map(parseFloat);
-        // tmax_smoothed = results[2].split("\n")[1].split(" ").map(parseFloat);
-        // tmax_coverage_years = results[3].split("\n")[0].split(" ").map(parseFloat);
-        // tmax_coverage_perc = results[3].split("\n")[1].split(" ").map(parseFloat);
-
-        // tmin_boxplot = results[4].split("\n").slice(0,5).map(function(d) { return d.split(" ").map(parseFloat); });
-        // tmin_median = tmin_boxplot[6];
-        tmin_avg = results[5].split(" ").map(parseFloat);
-        // tmin_smoothed_days = results[6].split("\n")[0].split(" ").map(parseFloat);
-        // tmin_smoothed = results[6].split("\n")[1].split(" ").map(parseFloat);
-        // tmin_coverage_years = results[7].split("\n")[0].split(" ").map(parseFloat);
-        // tmax_coverage_perc = results[7].split("\n")[1].split(" ").map(parseFloat);
-    }
-
-    // only really need these
-    // var tmax_raw;
-    // var tmax_raw_years;
-    // var tmin_raw;
-    // var tmin_raw_years;
-
     var split_results_precomputed_small = function() {
-        tmax_avg = results[0].split(" ").map(parseFloat);
-        tmin_avg = results[1].split(" ").map(parseFloat);
-
-        tmax_raw = results[2].split("\n").map(function(d) { return d.split(" ").map(parseFloat).slice(0,365); });
-        tmax_raw_years = results[3].split("\n").map(parseFloat);
+        tmax_raw = results[0].split("\n").map(function(d) { return d.split(" ").map(parseFloat).slice(0,365); });
+        tmax_raw_years = results[1].split("\n").map(parseFloat);
         if (isNaN(tmax_raw_years[tmax_raw_years.length-1])) {
             tmax_raw_years = tmax_raw_years.slice(0,tmax_raw_years.length-1);
             tmax_raw = tmax_raw.slice(0,tmax_raw.length-1);
@@ -291,10 +263,7 @@ var cityPlot = function(error,results) {
         }
     }
 
-    // split_results_precomputed_all();
     split_results_precomputed_small();
-
-    console.log(tmin_avg);
 
     // check that the tmin and tmax start at the same year
     if (tmin_raw_years[0] !== tmax_raw_years[0]) {
@@ -306,10 +275,10 @@ var cityPlot = function(error,results) {
         console.log("lengths are off");
     }
 
-    // var yearOffset = 0;
+    var yearOffset = 0;
     // go get the year offset from the allyears
-    for (var i=0; i<allyears.length; i++) {
-        if (tmin_raw_years[0] === allyears[i]) {
+    for (var i=0; i<full_year_range.length; i++) {
+        if (tmin_raw_years[0] === full_year_range[i]) {
             yearOffset = i;
             break;
         }
@@ -317,6 +286,8 @@ var cityPlot = function(error,results) {
 
     var good_tmax_count = Array(365);
     var good_tmin_count = Array(365);
+    tmax_avg = Array(365);
+    tmin_avg = Array(365);
     
     // reset these
     for (var i=0; i<365; i++) {
@@ -339,318 +310,446 @@ var cityPlot = function(error,results) {
             }
         }
     }
-        
 
     // take the average
     for (var i=0; i<365; i++) {
         if (good_tmax_count[i] > 0) {
             tmax_avg[i] = tmax_avg[i]/good_tmax_count[i];
         }
-        if (good_tmin_count[i] > 0) {             
+        if (good_tmin_count[i] > 0) {
             tmin_avg[i] = tmin_avg[i]/good_tmin_count[i];
         }
     }
 
-    console.log(tmin_avg);
-    
-    var smoother = smooth_timeseries_gaussian([15],tmax_avg,"summer");
-    var summer_teletherm_date = smoother.teletherm_dates[0];
-    var summer_teletherm_extent = smoother.teletherm_extents[0];
-    var tmax_smoothed_js  = smoother.smoothed_timeseries[0];
+    var summer_smoother = smooth_timeseries_gaussian([15],tmax_avg,"summer");
+    summer_teletherm_date = summer_smoother.teletherm_dates[0];
+    summer_teletherm_extent = summer_smoother.teletherm_extents[0];
+    console.log(summer_teletherm_extent);
+    tmax_smoothed_js  = summer_smoother.smoothed_timeseries[0];
 
-    smoother = smooth_timeseries_gaussian([15],tmin_avg,"winter");
-    var winter_teletherm_date = smoother.teletherm_dates[0];
-    var winter_teletherm_extent = smoother.teletherm_extents[0];
-    var tmin_smoothed_js  = smoother.smoothed_timeseries[0];
+    var winter_smoother = smooth_timeseries_gaussian([15],tmin_avg,"winter");
+    winter_teletherm_date = winter_smoother.teletherm_dates[0];
+    winter_teletherm_extent = winter_smoother.teletherm_extents[0];
+    console.log(winter_teletherm_extent);
+    tmin_smoothed_js  = winter_smoother.smoothed_timeseries[0];
     
     console.log("will now plot the city data");
 
-    var figure = d3.select("#station1");
+    var figure;
+    var margin;
+    var figheight;
+    var figwidth;
+    var width;
+    var height;
+    var canvas;
+    var x_max;
+    var x_min;
+    var y;
+    var axes;
+    var line_max;
+    var line_min;
+    var area_max;
+    var area_min;
     
-    var margin = {top: 40, right: 10, bottom: 40, left: 50};
+    plot_city_main = function() {
+        // globals that this function needs:
+        // tmin_avg,tmax_avg,summer_teletherm_extent,winter_teletherm_extent,tmax_smoothed_js,tmin_smoothed_js,summer_teletherm_date,winter_teletherm_date
 
-    // full width and height
-    var figwidth  = parseInt(figure.style("width"));
-    var figheight = figwidth*0.5;
-    // don't shrink this
-    var width = figwidth - margin.left - margin.right;
-    // tiny bit of space
-    var height = figheight - margin.top - margin.bottom;
+        figure = d3.select("#station1");
+        
+        margin = {top: 40, right: 10, bottom: 40, left: 50};
 
-    // remove an old figure if it exists
-    figure.select(".canvas").remove();
+        // full width and height
+        figwidth  = parseInt(figure.style("width"));
+        figheight = figwidth*0.5;
+        // don't shrink this
+        width = figwidth - margin.left - margin.right;
+        // tiny bit of space
+        height = figheight - margin.top - margin.bottom;
 
-    //Create SVG element
-    var canvas = figure
-	.append("svg")
-	.attr("class", "map canvas")
-	.attr("id", "stationsvg1")
-	.attr("width", figwidth)
-	.attr("height", figheight);
+        // remove an old figure if it exists
+        figure.select(".canvas").remove();
 
-    var x_max = d3.scale.linear()
-	.domain([1,365+181])
-	.range([0,width]);
+        //Create SVG element
+        canvas = figure
+	    .append("svg")
+	    .attr("class", "map canvas")
+	    .attr("id", "stationsvg1")
+	    .attr("width", figwidth)
+	    .attr("height", figheight);
 
-    var x_min = d3.scale.linear()
-	.domain([1-181,365+181-181])
-	.range([0,width]);
+        x_max = d3.scale.linear()
+	    .domain([1,365+181])
+	    .range([0,width]);
 
-    var y =  d3.scale.linear()
+        x_min = d3.scale.linear()
+	    .domain([1-181,365+181-181])
+	    .range([0,width]);
+        
+        y =  d3.scale.linear()
 	// .domain([-30,130]) // summer temps
-	.domain([d3.min(tmin_avg),d3.max(tmax_avg)])
-	.range([height-10, 10]); 
+	    .domain([d3.min(tmin_avg),d3.max(tmax_avg)])
+	    .range([height-10, 10]); 
 
-    // create the axes themselves
-    var axes = canvas.append("g")
-	.attr("transform", "translate(" + (margin.left) + "," +
-	      (margin.top) + ")") // 99 percent
-	.attr("width", width)
-	.attr("height", height)
-	.attr("class", "main");
+        // create the axes themselves
+        axes = canvas.append("g")
+	    .attr("transform", "translate(" + (margin.left) + "," +
+	          (margin.top) + ")") // 99 percent
+	    .attr("width", width)
+	    .attr("height", height)
+	    .attr("class", "main");
 
-    // create the axes background
-    var bgrect = axes.append("svg:rect")
-	.attr("width", width)
-	.attr("height", height)
-	.attr("class", "bg")
-	.style({'stroke-width':'2','stroke':'rgb(0,0,0)'})
-	.attr("fill", "#FCFCFC");
+        // create the axes background
+        var bgrect = axes.append("svg:rect")
+	    .attr("width", width)
+	    .attr("height", height)
+	    .attr("class", "bg")
+	    .style({'stroke-width':'2','stroke':'rgb(0,0,0)'})
+	    .attr("fill", "#FCFCFC");
 
-    // axes creation functions
-    var create_xAxis = function() {
-	return d3.svg.axis()
-	    .scale(x_max)
-            .tickValues(month_lengths_cum_18_forward)
-            .tickFormat(function(d,i) { return month_names[i % 12].slice(0,3) + " 1"; })
-	    .orient("bottom"); }
+        // axes creation functions
+        var create_xAxis = function() {
+	    return d3.svg.axis()
+	        .scale(x_max)
+                .tickValues(month_lengths_cum_18_forward)
+                .tickFormat(function(d,i) { return month_names[i % 12].slice(0,3) + " 1"; })
+	        .orient("bottom"); }
 
-    // axes creation functions
-    var create_xAxis_2 = function() {
-	return d3.svg.axis()
-	    .scale(x_min)
-            .tickValues(month_lengths_cum_18_backward)
-            .tickFormat(function(d,i) { return month_names[i % 12].slice(0,3) + " 1"; })
-	    .orient("top"); }    
+        // axes creation functions
+        var create_xAxis_2 = function() {
+	    return d3.svg.axis()
+	        .scale(x_min)
+                .tickValues(month_lengths_cum_18_backward)
+                .tickFormat(function(d,i) { return month_names[i % 12].slice(0,3) + " 1"; })
+	        .orient("top"); }    
 
-    // axis creation function
-    var create_yAxis = function() {
-	return d3.svg.axis()
-	    .ticks(5)
-            	    .scale(y) //linear scale function
-	    .orient("left"); }
-
-    // draw the axes
-    var yAxis = create_yAxis()
-	.innerTickSize(6)
-	.outerTickSize(0);
-
-    axes.append("g")
-	.attr("class", "y axis")
-	.attr("transform", "translate(0,0)")
-	.attr("font-size", "14.0px")
-	.call(yAxis);
-
-    // draw the axes
-    var xAxis = create_xAxis()
-	.innerTickSize(6)
-	.outerTickSize(0);
-
-    axes.append("g")
-	.attr("class", "x axis ")
-	.attr("font-size", "14.0px")
-	.attr("transform", "translate(0," + (height) + ")")
-	.call(xAxis);
+        // axis creation function
+        var create_yAxis = function() {
+	    return d3.svg.axis()
+	        .ticks(5)
+            	.scale(y) //linear scale function
+	        .orient("left"); }
 
         // draw the axes
-    var xAxis_2 = create_xAxis_2()
-	.innerTickSize(6)
-	.outerTickSize(0);
+        var yAxis = create_yAxis()
+	    .innerTickSize(6)
+	    .outerTickSize(0);
 
-    axes.append("g")
-	.attr("class", "x axis ")
-	.attr("font-size", "14.0px")
-	.attr("transform", "translate(0," + (0) + ")")
-	.call(xAxis_2);
+        axes.append("g")
+	    .attr("class", "y axis")
+	    .attr("transform", "translate(0,0)")
+	    .attr("font-size", "14.0px")
+	    .call(yAxis);
 
-    d3.selectAll(".tick line").style("stroke","black");
+        // draw the axes
+        var xAxis = create_xAxis()
+	    .innerTickSize(6)
+	    .outerTickSize(0);
 
-    d3.selectAll(".tick text").style("font-size",10);    
+        axes.append("g")
+	    .attr("class", "x axis ")
+	    .attr("font-size", "14.0px")
+	    .attr("transform", "translate(0," + (height) + ")")
+	    .call(xAxis);
 
-    var xlabel_text = "Summer Teletherm Day";
-    var xlabel = canvas.append("text")
-	.text(xlabel_text)
-	.attr("class","axes-text")
-	.attr("x",margin.left+width/2)  
-	.attr("y",figheight-5)
-	.attr("font-size", "15.0px")
-	.attr("fill", "#000000")
-	.attr("style", "text-anchor: middle;");
+        // draw the axes
+        var xAxis_2 = create_xAxis_2()
+	    .innerTickSize(6)
+	    .outerTickSize(0);
 
-    
-    var xlabel_text = "Winter Teletherm Day";
-    var xlabel = canvas.append("text")
-	.text(xlabel_text)
-	.attr("class","axes-text")
-	.attr("x",margin.left+width/2)  
-	.attr("y",14)
-	.attr("font-size", "15.0px")
-	.attr("fill", "#000000")
-	.attr("style", "text-anchor: middle;");
+        axes.append("g")
+	    .attr("class", "x axis ")
+	    .attr("font-size", "14.0px")
+	    .attr("transform", "translate(0," + (0) + ")")
+	    .call(xAxis_2);
 
-    var ylabel_text = "Temperature";
-    var ylabel = canvas.append("text")
-	.text(ylabel_text)
-	.attr("class","axes-text")
-	.attr("x",18)
-	.attr("y",figheight/2)
-	.attr("font-size", "15.0px")
-	.attr("fill", "#000000")
-	.attr("transform", "rotate(-90.0," + (18) + "," + (figheight/2) + ")");    
+        d3.selectAll(".tick line").style("stroke","black");
 
-    var line_max = d3.svg.line()
-	.x(function(d,i) { return x_max(i+1); })
-	.y(function(d) { return y(d); })
-	.interpolate("linear"); // cardinal
+        d3.selectAll(".tick text").style("font-size",10);    
 
-    var line_min = d3.svg.line()
-	.x(function(d,i) { return x_min(i+1-181); })
-	.y(function(d) { return y(d); })
-	.interpolate("linear"); // cardinal    
+        var xlabel_text = "Summer Teletherm Day";
+        var xlabel = canvas.append("text")
+	    .text(xlabel_text)
+	    .attr("class","axes-text")
+	    .attr("x",margin.left+width/2)  
+	    .attr("y",figheight-5)
+	    .attr("font-size", "15.0px")
+	    .attr("fill", "#000000")
+	    .attr("style", "text-anchor: middle;");
 
-    var area_max = d3.svg.area()
-	.x(function(d,i) { return x_max(i+summer_teletherm_extent[0]+1); })
-	.y0(function(d) { return height; })
-	.y1(function(d) { return y(d); })    
-	.interpolate("linear"); // cardinal
+        
+        var xlabel_text = "Winter Teletherm Day";
+        var xlabel = canvas.append("text")
+	    .text(xlabel_text)
+	    .attr("class","axes-text")
+	    .attr("x",margin.left+width/2)  
+	    .attr("y",14)
+	    .attr("font-size", "15.0px")
+	    .attr("fill", "#000000")
+	    .attr("style", "text-anchor: middle;");
 
-    var area_min = d3.svg.area()
-	.x(function(d,i) { return x_min(i+winter_teletherm_extent[0]+1); })
-	.y0(function(d) { return 0; })
-	.y1(function(d) { return y(d); })    
-	.interpolate("linear"); // cardinal
+        var ylabel_text = "Temperature";
+        var ylabel = canvas.append("text")
+	    .text(ylabel_text)
+	    .attr("class","axes-text")
+	    .attr("x",18)
+	    .attr("y",figheight/2)
+	    .attr("font-size", "15.0px")
+	    .attr("fill", "#000000")
+	    .attr("transform", "rotate(-90.0," + (18) + "," + (figheight/2) + ")");    
 
-    axes.append("path")
-        .datum(tmax_smoothed_js.slice(summer_teletherm_extent[0],summer_teletherm_extent[1]))
-        .attr("class", "linejs")
-        .attr("d", area_max)
-        .attr("stroke","black")
-        .attr("stroke-width",0.5)
-        .attr("fill","lightgrey");
+        line_max = d3.svg.line()
+	    .x(function(d,i) { return x_max(i+1); })
+	    .y(function(d) { return y(d); })
+	    .interpolate("linear"); // cardinal
 
-    axes.append("path")
-        .datum(tmin_smoothed_js.slice(winter_teletherm_extent[0],winter_teletherm_extent[1]))
-        .attr("class", "linejs")
-        .attr("d", area_min)
-        .attr("stroke","black")
-        .attr("stroke-width",0.5)
-        .attr("fill","lightgrey");    
+        line_min = d3.svg.line()
+	    .x(function(d,i) { return x_min(i+1-181); })
+	    .y(function(d) { return y(d); })
+	    .interpolate("linear"); // cardinal    
 
-    axes.append("path")
-        .datum([].concat(tmax_smoothed_js,tmax_smoothed_js.slice(0,181)))
-        .attr("class", "linejs")
-        .attr("d", line_max)
-        .attr("stroke","red")
-        .attr("stroke-width",2)
-        .attr("fill","none");
+        area_max = d3.svg.area()
+	    .x(function(d,i) { return x_max(d+1); })
+	    .y0(function(d) { return height; })
+	    .y1(function(d) { return y(tmax_smoothed_js[d]); })    
+	    .interpolate("linear"); // cardinal
 
-    axes.append("path")
-        .datum([].concat(tmin_smoothed_js.slice(184),tmin_smoothed_js))
-        .attr("class", "linepeter")
-        .attr("d", line_min)
-        .attr("stroke","blue")
-        .attr("stroke-width",2)
-        .attr("fill","none");
 
-    axes.selectAll("circle.avgmaxtemp")
-	.data([].concat(tmax_avg,tmax_avg.slice(0,181)))
-	.enter()
-	.append("circle")
-	.attr({ "cx": function(d,i) { return x_max(i+1); },
-		"cy": function(d,i) { return y(d); },
-		"r": 2,
-	      });
+        area_min = d3.svg.area()
+	    .x(function(d,i) { return x_min(d+1); })
+	    .y0(function(d) { return 0; })
+	    .y1(function(d) { return y(tmin_smoothed_js[d]); })
+	    .interpolate("linear"); // cardinal
 
-    axes.selectAll("circle.avgmintemp")
-	.data([].concat(tmin_avg.slice(184),tmin_avg))
-	.enter()
-	.append("circle")
-	.attr({ "cx": function(d,i) { return x_min(i+1-181); },
-		"cy": function(d,i) { return y(d); },
-		"r": 2,
-	      });
-    
-    axes.append("line")
-	.attr({ "x1": x_max(summer_teletherm_date+1),
-		"y1": height,
-		"x2": x_max(summer_teletherm_date+1),
-                "y2": y(tmax_smoothed_js[summer_teletherm_date]),
-                "class": "summerteleline",
-	      })
-        .style({
-            "stroke": "black",
-            "stroke-width": 2,
-        });
+        var summer_teletherm_extent_extended = Array(summer_teletherm_extent.length);
+        for (var i=0; i<summer_teletherm_extent.length; i++) {
+            summer_teletherm_extent_extended[i] = [summer_teletherm_extent[i][0]];
+            while ((summer_teletherm_extent_extended[i][summer_teletherm_extent_extended[i].length-1]) < summer_teletherm_extent[i][1]) { summer_teletherm_extent_extended[i].push(summer_teletherm_extent_extended[i][summer_teletherm_extent_extended[i].length-1]+1);  }
+        }
 
-    axes.append("line")
-	.attr({ "x1": x_min(winter_teletherm_date+1),
-		"y1": 0,
-		"x2": x_min(winter_teletherm_date+1),
-                "y2": y(tmin_smoothed_js[winter_teletherm_date]),
-                "class": "winterteleline",
-	      })
-        .style({
-            "stroke": "black",
-            "stroke-width": 2,
-        });
+        axes.selectAll("path.summerextentarea")
+            .data(summer_teletherm_extent_extended)
+            .enter()
+            .append("path")
+            .attr("class", "summerextentarea")
+            .attr("d", area_max)
+            .attr("stroke","black")
+            .attr("stroke-width",0.5)
+            .attr("fill","lightgrey");
 
-    // format the summer teletherm day
-    // with our fixed months
-    var month = 0;
-    while (summer_teletherm_date > month_lengths_cum[month]) {
-        month+=1;
+        var winter_teletherm_extent_extended = Array(winter_teletherm_extent.length);
+        for (var i=0; i<winter_teletherm_extent.length; i++) {
+            winter_teletherm_extent_extended[i] = [winter_teletherm_extent[i][0]];
+            while ((winter_teletherm_extent_extended[i][winter_teletherm_extent_extended[i].length-1]) < winter_teletherm_extent[i][1]) { winter_teletherm_extent_extended[i].push(winter_teletherm_extent_extended[i][winter_teletherm_extent_extended[i].length-1]+1);  }
+        }
+
+        // console.log(winter_teletherm_extent);
+        // console.log(winter_teletherm_extent_extended);
+
+        axes.selectAll("path.winterextentarea")
+        // .data([tmin_smoothed_js.slice(winter_teletherm_extent[0][0],winter_teletherm_extent[0][1]),tmin_smoothed_js.slice(winter_teletherm_extent[1][0],winter_teletherm_extent[1][1])])
+            .data(winter_teletherm_extent_extended)
+            .enter()
+            .append("path")        
+            .attr("class", "winterextentarea")
+            .attr("d", area_min)
+            .attr("stroke","black")
+            .attr("stroke-width",0.5)
+            .attr("fill","lightgrey");
+
+        axes.append("path")
+            .datum([].concat(tmax_smoothed_js,tmax_smoothed_js.slice(0,181)))
+            .attr("class", "tmaxsmoothed")
+            .attr("d", line_max)
+            .attr("stroke","red")
+            .attr("stroke-width",2)
+            .attr("fill","none");
+
+        axes.append("path")
+            .datum([].concat(tmin_smoothed_js.slice(184),tmin_smoothed_js))
+            .attr("class", "tminsmoothed")
+            .attr("d", line_min)
+            .attr("stroke","blue")
+            .attr("stroke-width",2)
+            .attr("fill","none");
+
+        axes.selectAll("circle.avgmaxtemp")
+	    .data([].concat(tmax_avg,tmax_avg.slice(0,181)))
+	    .enter()
+	    .append("circle")
+	    .attr({ "cx": function(d,i) { return x_max(i+1); },
+		    "cy": function(d,i) { return y(d); },
+		    "r": 2,
+                    "class": "avgmaxtemp",
+	          });
+
+        axes.selectAll("circle.avgmintemp")
+	    .data([].concat(tmin_avg.slice(184),tmin_avg))
+	    .enter()
+	    .append("circle")
+	    .attr({ "cx": function(d,i) { return x_min(i+1-181); },
+		    "cy": function(d,i) { return y(d); },
+		    "r": 2,
+                    "class": "avgmintemp",
+	          });
+        
+        axes.append("line")
+	    .attr({ "x1": x_max(summer_teletherm_date+1),
+		    "y1": height,
+		    "x2": x_max(summer_teletherm_date+1),
+                    "y2": y(tmax_smoothed_js[summer_teletherm_date]),
+                    "class": "summerteleline",
+	          })
+            .style({
+                "stroke": "black",
+                "stroke-width": 2,
+            });
+
+        axes.append("line")
+	    .attr({ "x1": x_min(winter_teletherm_date+1),
+		    "y1": 0,
+		    "x2": x_min(winter_teletherm_date+1),
+                    "y2": y(tmin_smoothed_js[winter_teletherm_date]),
+                    "class": "winterteleline",
+	          })
+            .style({
+                "stroke": "black",
+                "stroke-width": 2,
+            });
+
+        // format the summer teletherm day
+        // with our fixed months
+        var month = 0;
+        while (summer_teletherm_date > month_lengths_cum[month]) {
+            month+=1;
+        }
+        var day = summer_teletherm_date-month_lengths_cum[month-1]+1;
+        // console.log(month);
+        // console.log(day);
+        
+        axes.append("text")
+            .attr({
+                "x": function(d,i) { return x_max(summer_teletherm_extent[0][0]+1)-5; },
+                "y": height-30,
+                "transform": function(d,i) { return "rotate(-90 "+(x_max(summer_teletherm_extent[0][0]+1)-5)+","+(height-30)+")"; },
+                "class": "summertext",
+            })
+            .style({
+                "text-align": "left",
+                "font-size": 11,
+            })    
+            .text("Summer Teletherm: "+month_names[month-1].slice(0,3)+" "+day+" (day "+summer_teletherm_date+"), "+(summer_teletherm_extent[summer_teletherm_extent.length-1][1]-summer_teletherm_extent[0][0])+" day extent")
+
+        // format the winter teletherm day
+        // with our fixed months
+        month = 0;
+        while (winter_teletherm_date > month_lengths_cum[month]) {
+            month+=1;
+        }
+        day = winter_teletherm_date-month_lengths_cum[month-1]+1;
+        
+        axes.append("text")
+            .attr({
+                "x": function(d,i) { return x_min(winter_teletherm_extent[0][0]+1)-5; },
+                "y": 290,
+                "transform": function(d,i) { return "rotate(-90 "+(x_min(winter_teletherm_extent[0][0]+1)-5)+","+290+")"; },
+            })
+            .style({
+                "text-align": "right",
+                "font-size": 11,
+                "class": "wintertext",
+            })    
+            .text("Winter Teletherm: "+month_names[month-1-6].slice(0,3)+" "+day+" (day "+winter_teletherm_date+"), "+(winter_teletherm_extent[winter_teletherm_extent.length-1][1]-winter_teletherm_extent[0][0])+" day extent");
+        
+    } // end plot() function
+
+    // call it
+    plot_city_main();
+
+    replot_city_main = function() {
+        // broken now, with multiple periods combing back
+        axes.select("path.summerextentarea")
+            .transition()
+            .datum(tmax_smoothed_js.slice(summer_teletherm_extent[0][0],summer_teletherm_extent[0][1]))
+            .attr("d", area_max);
+
+        axes.select("path.winterextentarea")
+            .transition()
+            .datum(tmin_smoothed_js.slice(winter_teletherm_extent[0][0],winter_teletherm_extent[0][1]))
+            .attr("d", area_min)
+        
+        axes.select("path.tmaxsmoothed")
+            .transition()
+            .datum([].concat(tmax_smoothed_js,tmax_smoothed_js.slice(0,181)))
+            .attr("d", line_max)
+
+        axes.select("path.tminsmoothed")
+            .transition()
+            .datum([].concat(tmin_smoothed_js.slice(184),tmin_smoothed_js))
+            .attr("d", line_min)
+
+        axes.selectAll("circle.avgmaxtemp")
+            .transition()
+	    .data([].concat(tmax_avg,tmax_avg.slice(0,181)))
+	    .attr({ "cx": function(d,i) { return x_max(i+1); },
+		    "cy": function(d,i) { return y(d); },
+	          });
+
+        axes.selectAll("circle.avgmintemp")
+	    .data([].concat(tmin_avg.slice(184),tmin_avg))
+            .transition()        
+	    .attr({ "cx": function(d,i) { return x_min(i+1-181); },
+		    "cy": function(d,i) { return y(d); },
+	          });
+        
+        axes.select("line.summerteleline")
+            .transition()
+	    .attr({ "x1": x_max(summer_teletherm_date+1),
+		    "x2": x_max(summer_teletherm_date+1),
+                    "y2": y(tmax_smoothed_js[summer_teletherm_date]),
+	          });
+
+        axes.append("line.winterteleline")
+            .transition()
+	    .attr({ "x1": x_min(winter_teletherm_date+1),
+		    "x2": x_min(winter_teletherm_date+1),
+                    "y2": y(tmin_smoothed_js[winter_teletherm_date]),
+	          });
+        
+        // format the summer teletherm day
+        // with our fixed months
+        var month = 0;
+        while (summer_teletherm_date > month_lengths_cum[month]) {
+            month+=1;
+        }
+        var day = summer_teletherm_date-month_lengths_cum[month-1]+1;
+        // console.log(month);
+        // console.log(day);
+        
+        axes.select("text.summertext")
+            .transition()
+            .attr({
+                "x": function(d,i) { return x_max(summer_teletherm_extent[0]+1)-5; },
+                "transform": function(d,i) { return "rotate(-90 "+(x_max(summer_teletherm_extent[0]+1)-5)+","+(height-30)+")"; },
+            })
+            .text("Summer Teletherm: "+month_names[month-1].slice(0,3)+" "+day+" (day "+summer_teletherm_date+"), "+(summer_teletherm_extent[1]-summer_teletherm_extent[0])+" day extent")
+
+        // format the winter teletherm day
+        // with our fixed months
+        month = 0;
+        while (winter_teletherm_date > month_lengths_cum[month]) {
+            month+=1;
+        }
+        day = winter_teletherm_date-month_lengths_cum[month-1]+1;
+        
+        axes.select("text.wintertext")
+            .transition()
+            .attr({
+                "x": function(d,i) { return x_min(winter_teletherm_extent[0]+1)-5; },
+                "transform": function(d,i) { return "rotate(-90 "+(x_min(winter_teletherm_extent[0]+1)-5)+","+290+")"; },
+            })
+            .text("Winter Teletherm: "+month_names[month-1-6].slice(0,3)+" "+day+" (day "+winter_teletherm_date+"), "+(winter_teletherm_extent[1]-winter_teletherm_extent[0])+" day extent");        
     }
-    console.log(month);
-    var day = summer_teletherm_date-month_lengths_cum[month-1]+1;
-    console.log(day);
-    
-    axes.append("text")
-        .attr({
-            "x": function(d,i) { return x_max(summer_teletherm_extent[0]+1)-5; },
-            "y": height-30,
-            "transform": function(d,i) { return "rotate(-90 "+(x_max(summer_teletherm_extent[0]+1)-5)+","+(height-30)+")"; },
-        })
-        .style({
-            // "stroke": "black",
-            "text-align": "left",
-            "font-size": 11,
-        })    
-        .text("Summer Teletherm: "+month_names[month-1].slice(0,3)+" "+day+" (day "+summer_teletherm_date+"), "+(summer_teletherm_extent[1]-summer_teletherm_extent[0])+" day extent")
-
-    // format the summer teletherm day
-    // with our fixed months
-    month = 0;
-    while (winter_teletherm_date > month_lengths_cum[month]) {
-        month+=1;
-    }
-    day = winter_teletherm_date-month_lengths_cum[month-1]+1;
-    
-    axes.append("text")
-        .attr({
-            "x": function(d,i) { return x_min(winter_teletherm_extent[0]+1)-5; },
-            // "y": y([].concat(tmax_smoothed_js,tmax_smoothed_js)[winter_teletherm_extent[0]+181])-60,
-            // "transform": function(d,i) { return "rotate(-90 "+(x_min(winter_teletherm_extent[0]+1)-5)+","+(y([].concat(tmax_smoothed_js,tmax_smoothed_js)[winter_teletherm_extent[0]+181])-60)+")"; },
-            "y": 290,
-            "transform": function(d,i) { return "rotate(-90 "+(x_min(winter_teletherm_extent[0]+1)-5)+","+290+")"; },
-        })
-        .style({
-            // "stroke": "black",
-            "text-align": "right",
-            "font-size": 11,
-        })    
-        .text("Winter Teletherm: "+month_names[month-1-6].slice(0,3)+" "+day+" (day "+winter_teletherm_date+"), "+(winter_teletherm_extent[1]-winter_teletherm_extent[0])+" day extent")    
-
-
     
     // move the screen down to this
     // document.getElementById('station1').focus();
@@ -662,7 +761,7 @@ $("#yearbuttons input").click(function() {
     console.log("calling updatewindow()");
     updatewindow(1000);
     
-    console.log($(this).val());
+    // console.log($(this).val());
     currentWindow = $(this).val();
     windowEncoder.varval(currentWindow);
 
@@ -756,14 +855,116 @@ var maxTcolor = function(i) {
 }
 
 // diverging red blue color map from colorbrewer
-var divredbluerev = ["#67001f","#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#var"];
+// var divredbluerev = ["#67001f","#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#var"];
 // var divredblue = ["#053061","#2166ac","#4393c3","#92c5de","#d1e5f0","#f7f7f7","#fddbc7","#f4a582","#d6604d","#b2182b","#67001f",];
-var divredblue = ['rgb(165,0,38)','rgb(215,48,39)','rgb(244,109,67)','rgb(253,174,97)','rgb(254,224,144)','rgb(255,255,191)','rgb(171,217,233)','rgb(116,173,209)','rgb(69,117,180)','rgb(49,54,149)','rgb(44,46,108)'].reverse();
+// var divredblue = ['rgb(165,0,38)','rgb(215,48,39)','rgb(244,109,67)','rgb(253,174,97)','rgb(254,224,144)','rgb(255,255,191)','rgb(171,217,233)','rgb(116,173,209)','rgb(69,117,180)','rgb(49,54,149)','rgb(44,46,108)'].reverse();
+// var divredblue = [
+//     [1.0000000e+00,0.0000000e+00,0.0000000e+00],
+//     [1.0000000e+00,6.0000000e-02,0.0000000e+00],
+//     [1.0000000e+00,1.2000000e-01,0.0000000e+00],
+//     [1.0000000e+00,1.8000000e-01,0.0000000e+00],
+//     [1.0000000e+00,2.4000000e-01,0.0000000e+00],
+//     [1.0000000e+00,3.0000000e-01,0.0000000e+00],
+//     [1.0000000e+00,3.6000000e-01,0.0000000e+00],
+//     [1.0000000e+00,4.2000000e-01,0.0000000e+00],
+//     [1.0000000e+00,4.8000000e-01,0.0000000e+00],
+//     [1.0000000e+00,5.4000000e-01,0.0000000e+00],
+//     [1.0000000e+00,6.0000000e-01,0.0000000e+00],
+//     [1.0000000e+00,6.6000000e-01,0.0000000e+00],
+//     [1.0000000e+00,7.2000000e-01,0.0000000e+00],
+//     [1.0000000e+00,7.8000000e-01,0.0000000e+00],
+//     [1.0000000e+00,8.4000000e-01,0.0000000e+00],
+//     [1.0000000e+00,9.0000000e-01,0.0000000e+00],
+//     [1.0000000e+00,9.6000000e-01,0.0000000e+00],
+//     [9.8000000e-01,1.0000000e+00,0.0000000e+00],
+//     [9.2000000e-01,1.0000000e+00,0.0000000e+00],
+//     [8.6000000e-01,1.0000000e+00,0.0000000e+00],
+//     [8.0000000e-01,1.0000000e+00,0.0000000e+00],
+//     [7.4000000e-01,1.0000000e+00,0.0000000e+00],
+//     [6.8000000e-01,1.0000000e+00,0.0000000e+00],
+//     [6.2000000e-01,1.0000000e+00,0.0000000e+00],
+//     [5.6000000e-01,1.0000000e+00,0.0000000e+00],
+//     [5.0000000e-01,1.0000000e+00,0.0000000e+00],
+//     [4.4000000e-01,1.0000000e+00,0.0000000e+00],
+//     [3.8000000e-01,1.0000000e+00,0.0000000e+00],
+//     [3.2000000e-01,1.0000000e+00,0.0000000e+00],
+//     [2.6000000e-01,1.0000000e+00,0.0000000e+00],
+//     [2.0000000e-01,1.0000000e+00,0.0000000e+00],
+//     [1.4000000e-01,1.0000000e+00,0.0000000e+00],
+//     [8.0000000e-02,1.0000000e+00,0.0000000e+00],
+//     [2.0000000e-02,1.0000000e+00,0.0000000e+00],
+//     [0.0000000e+00,1.0000000e+00,4.0000000e-02],
+//     [0.0000000e+00,1.0000000e+00,1.0000000e-01],
+//     [0.0000000e+00,1.0000000e+00,1.6000000e-01],
+//     [0.0000000e+00,1.0000000e+00,2.2000000e-01],
+//     [0.0000000e+00,1.0000000e+00,2.8000000e-01],
+//     [0.0000000e+00,1.0000000e+00,3.4000000e-01],
+//     [0.0000000e+00,1.0000000e+00,4.0000000e-01],
+//     [0.0000000e+00,1.0000000e+00,4.6000000e-01],
+//     [0.0000000e+00,1.0000000e+00,5.2000000e-01],
+//     [0.0000000e+00,1.0000000e+00,5.8000000e-01],
+//     [0.0000000e+00,1.0000000e+00,6.4000000e-01],
+//     [0.0000000e+00,1.0000000e+00,7.0000000e-01],
+//     [0.0000000e+00,1.0000000e+00,7.6000000e-01],
+//     [0.0000000e+00,1.0000000e+00,8.2000000e-01],
+//     [0.0000000e+00,1.0000000e+00,8.8000000e-01],
+//     [0.0000000e+00,1.0000000e+00,9.4000000e-01],
+//     [0.0000000e+00,1.0000000e+00,1.0000000e+00],
+//     [0.0000000e+00,9.4000000e-01,1.0000000e+00],
+//     [0.0000000e+00,8.8000000e-01,1.0000000e+00],
+//     [0.0000000e+00,8.2000000e-01,1.0000000e+00],
+//     [0.0000000e+00,7.6000000e-01,1.0000000e+00],
+//     [0.0000000e+00,7.0000000e-01,1.0000000e+00],
+//     [0.0000000e+00,6.4000000e-01,1.0000000e+00],
+//     [0.0000000e+00,5.8000000e-01,1.0000000e+00],
+//     [0.0000000e+00,5.2000000e-01,1.0000000e+00],
+//     [0.0000000e+00,4.6000000e-01,1.0000000e+00],
+//     [0.0000000e+00,4.0000000e-01,1.0000000e+00],
+//     [0.0000000e+00,3.4000000e-01,1.0000000e+00],
+//     [0.0000000e+00,2.8000000e-01,1.0000000e+00],
+//     [0.0000000e+00,2.2000000e-01,1.0000000e+00],
+//     [0.0000000e+00,1.6000000e-01,1.0000000e+00],
+//     [0.0000000e+00,1.0000000e-01,1.0000000e+00],
+//     [0.0000000e+00,4.0000000e-02,1.0000000e+00],
+//     [2.0000000e-02,0.0000000e+00,1.0000000e+00],
+//     [8.0000000e-02,0.0000000e+00,1.0000000e+00],
+//     [1.4000000e-01,0.0000000e+00,1.0000000e+00],
+//     [2.0000000e-01,0.0000000e+00,1.0000000e+00],
+//     [2.6000000e-01,0.0000000e+00,1.0000000e+00],
+//     [3.2000000e-01,0.0000000e+00,1.0000000e+00],
+//     [3.8000000e-01,0.0000000e+00,1.0000000e+00],
+//     [4.4000000e-01,0.0000000e+00,1.0000000e+00],
+//     [5.0000000e-01,0.0000000e+00,1.0000000e+00],
+//     [5.6000000e-01,0.0000000e+00,1.0000000e+00],
+//     [6.2000000e-01,0.0000000e+00,1.0000000e+00],
+//     [6.8000000e-01,0.0000000e+00,1.0000000e+00],
+//     [7.4000000e-01,0.0000000e+00,1.0000000e+00],
+//     [8.0000000e-01,0.0000000e+00,1.0000000e+00],
+//     [8.6000000e-01,0.0000000e+00,1.0000000e+00],
+//     [9.2000000e-01,0.0000000e+00,1.0000000e+00],
+//     [9.8000000e-01,0.0000000e+00,1.0000000e+00],
+//     [1.0000000e+00,0.0000000e+00,9.6000000e-01],
+//     [1.0000000e+00,0.0000000e+00,9.0000000e-01],
+//     [1.0000000e+00,0.0000000e+00,8.4000000e-01],
+//     [1.0000000e+00,0.0000000e+00,7.8000000e-01],
+//     [1.0000000e+00,0.0000000e+00,7.2000000e-01],
+//     [1.0000000e+00,0.0000000e+00,6.6000000e-01],
+//     [1.0000000e+00,0.0000000e+00,6.0000000e-01],
+//     [1.0000000e+00,0.0000000e+00,5.4000000e-01],
+//     [1.0000000e+00,0.0000000e+00,4.8000000e-01],
+//     [1.0000000e+00,0.0000000e+00,4.2000000e-01],
+//     [1.0000000e+00,0.0000000e+00,3.6000000e-01],
+//     [1.0000000e+00,0.0000000e+00,3.0000000e-01],
+//     [1.0000000e+00,0.0000000e+00,2.4000000e-01],
+//     [1.0000000e+00,0.0000000e+00,1.8000000e-01],
+//     [1.0000000e+00,0.0000000e+00,1.2000000e-01],
+//     [1.0000000e+00,0.0000000e+00,6.0000000e-02],];
+var divredblue = ["rgb(255,0,0)","rgb(255,15,0)","rgb(255,31,0)","rgb(255,46,0)","rgb(255,61,0)","rgb(255,77,0)","rgb(255,92,0)","rgb(255,107,0)","rgb(255,122,0)","rgb(255,138,0)","rgb(255,153,0)","rgb(255,168,0)","rgb(255,184,0)","rgb(255,199,0)","rgb(255,214,0)","rgb(255,230,0)","rgb(255,245,0)","rgb(250,255,0)","rgb(235,255,0)","rgb(219,255,0)","rgb(204,255,0)","rgb(189,255,0)","rgb(173,255,0)","rgb(158,255,0)","rgb(143,255,0)","rgb(128,255,0)","rgb(112,255,0)","rgb(97,255,0)","rgb(82,255,0)","rgb(66,255,0)","rgb(51,255,0)","rgb(36,255,0)","rgb(20,255,0)","rgb(5,255,0)","rgb(0,255,10)","rgb(0,255,26)","rgb(0,255,41)","rgb(0,255,56)","rgb(0,255,71)","rgb(0,255,87)","rgb(0,255,102)","rgb(0,255,117)","rgb(0,255,133)","rgb(0,255,148)","rgb(0,255,163)","rgb(0,255,179)","rgb(0,255,194)","rgb(0,255,209)","rgb(0,255,224)","rgb(0,255,240)","rgb(0,255,255)","rgb(0,240,255)","rgb(0,224,255)","rgb(0,209,255)","rgb(0,194,255)","rgb(0,179,255)","rgb(0,163,255)","rgb(0,148,255)","rgb(0,133,255)","rgb(0,117,255)","rgb(0,102,255)","rgb(0,87,255)","rgb(0,71,255)","rgb(0,56,255)","rgb(0,41,255)","rgb(0,26,255)","rgb(0,10,255)","rgb(5,0,255)","rgb(20,0,255)","rgb(36,0,255)","rgb(51,0,255)","rgb(66,0,255)","rgb(82,0,255)","rgb(97,0,255)","rgb(112,0,255)","rgb(128,0,255)","rgb(143,0,255)","rgb(158,0,255)","rgb(173,0,255)","rgb(189,0,255)","rgb(204,0,255)","rgb(219,0,255)","rgb(235,0,255)","rgb(250,0,255)","rgb(255,0,245)","rgb(255,0,230)","rgb(255,0,214)","rgb(255,0,199)","rgb(255,0,184)","rgb(255,0,168)","rgb(255,0,153)","rgb(255,0,138)","rgb(255,0,122)","rgb(255,0,107)","rgb(255,0,92)","rgb(255,0,77)","rgb(255,0,61)","rgb(255,0,46)","rgb(255,0,31)","rgb(255,0,15)",];
 
 var summerTScale = d3.scale.quantize()
-    // celsius domain
-    // .domain([63,117])
-    // for fake data
+ // celsius domain
+ // .domain([63,117])
+ // for fake data
     .range(divredblue);
 
 var fullExtent;
@@ -771,7 +972,7 @@ var angle_offset = 0;
 
 var updateMap = function(error,results) {
     console.log("update the map!");
-    console.log("here is the result from queue:");
+    console.log("here is the result from queue for the map update:");
     console.log(results);
     data = results[0].split("\n");
     if (results.length > 1) {
@@ -805,8 +1006,7 @@ var updateMap = function(error,results) {
 	.enter()
         .append("li")
         .append("a")
-	.text(function(d) { return d+""+"&ndash;"+(d+parseInt(windowDecoder().cached)); })
-    
+	.html(function(d) { return d+""+"&ndash;"+(d+parseInt(windowDecoder().cached)); })
         .on("click",function(d,i) {
 	    yearIndex = i;
             console.log(yearIndex);
@@ -900,7 +1100,7 @@ var changeYear = function() {
     yearEncoder.varval(allyears[yearIndex]+"");
     
 
-    console.log("calling updatewindow()");
+    console.log("calling updatewindow() to update the top timeline");
     updatewindow(update_time);
 
     cities.attr("fill",function(d,i) {
@@ -1030,8 +1230,10 @@ var drawScale = function(extent,type) {
 	    .endAngle((extent[1]-1)/365*2*Math.PI)
 	    .value(function(d) { return d; });
 
+        var ones = Array(divredblue.length);
+        for (var i=0; i<ones.length; i++) { ones[i] = 1; }
 	legendgroup.selectAll(".arc")
-	    .data(pie([1,1,1,1,1,1,1,1,1,1,1,]))
+	    .data(pie(ones))
 	    .enter()
 	    .append("path")
 	    .attr({"d": arc,
@@ -1047,9 +1249,11 @@ var drawScale = function(extent,type) {
             .domain([1,365/4+1])
             .range([90,180]);
 
+        var num_labels = 11;
+
         // let's linspace out the ticks
-        var increments = Array(divredblue.length+1);
-        var increments_moved = Array(divredblue.length+1);        
+        var increments = Array(num_labels);
+        var increments_moved = Array(increments.length);        
         var spacing = (extent[1]-extent[0])/(increments.length-1);
         for (var i=0; i<increments.length; i++) {
             increments[i] = extent[0]+i*spacing;
@@ -1191,7 +1395,7 @@ var plot_timeline = function() {
         });
 
     updatewindow = function(t) {
-        console.log("updating the window");
+        console.log("updating the top window slider");
         console.log(yearIndex);
         // curr_window.transition().duration(t).attr("x",x(full_year_range[yearIndex]));
         curr_window.transition().attr("x",x(full_year_range[yearIndex]))
@@ -1391,8 +1595,10 @@ var dataloaded = function(error,results) {
 	console.log(d[0]);
         
         queue()
-            .defer(d3.text,"/data/teledata/stations/tmax_0"+d[0]+".txt")
-            .defer(d3.text,"/data/teledata/stations/tmin_0"+d[0]+".txt")
+            .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_values_combined.txt")
+            .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-tmax_years_combined.txt")
+            .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-wrapped_tmin_values_combined.txt")
+            .defer(d3.text,"/data/teledata/stations/telethermdata-"+d[4]+"-wrapped_tmin_years_combined.txt")
             .awaitAll(cityPlot);
     };
 
@@ -1542,5 +1748,6 @@ window.onload = function() {
 	.awaitAll(dataloaded);
 
 } // window.onload
+
 
 
