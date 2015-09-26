@@ -37,23 +37,23 @@
 	</div>
       </div>
 
-      <div class="variableselection">
+      <!-- <div class="variableselection"> -->
         
-	<p>Select the variable:</p>
+      <!--   <p>Select the variable:</p> -->
 
-	<div class="btn-group" id="variabledrop">
-	  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" id="variabledropvis">
-	    Max Temp <span class="caret"></span>
-	  </button>
-	  <ul class="dropdown-menu" role="menu">
-	    <li><a>Summer Teletherm Day & Extent</a></li>
-	    <li><a>Winter Teletherm Day & Extent</a></li>
-	    <li><a>Summer Teletherm Temperature</a></li>
-	    <li><a>Winter Teletherm Temperature</a></li>
-	  </ul>
-	</div>
+      <!--   <div class="btn-group" id="variabledrop"> -->
+      <!--     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" id="variabledropvis"> -->
+      <!--       Max Temp <span class="caret"></span> -->
+      <!--     </button> -->
+      <!--     <ul class="dropdown-menu" role="menu"> -->
+      <!--       <li><a>Summer Teletherm Day & Extent</a></li> -->
+      <!--       <li><a>Winter Teletherm Day & Extent</a></li> -->
+      <!--       <li><a>Summer Teletherm Temperature</a></li> -->
+      <!--       <li><a>Winter Teletherm Temperature</a></li> -->
+      <!--     </ul> -->
+      <!--   </div> -->
 
-      </div>
+      <!-- </div> -->
 
       <div class="yearselection">
 
@@ -79,13 +79,12 @@
     <div id="timeline"></div>
   </div> <!-- row -->
   <div class="row">
-    <div id="map"></div>
-  </div> <!-- row -->         
+    <div id="timeseries1"></div>
+  </div> <!-- row -->
   <div class="row">
     <div class="col-xs-0 col-sm-12 col-sm-offset-0">
-      <button type="button" class="close" id="dismissCity" aria-label="Close" style="float: right"><span aria-hidden="true">×</span></button>
       <h3 id="stationname" style="margin-right: 0; margin-top: 0"></h3>
-      <div id="timeseries1"></div>
+      <div id="station1"></div>
     </div>
   </div> <!-- row -->
   <div class="row">
@@ -115,6 +114,7 @@
 <script src="{% static "panometer/js/hedotools.map.js" %}"></script>
 <script src="{% static "panometer/js/stations.js" %}"></script>
 <script src="{% static "panometer/js/cityTimePlot.js" %}"></script>
-<script src="{% static "panometer/js/teletherm.js" %}"></script>
+<script src="{% static "panometer/js/cityAveragePlot.js" %}"></script>
+<script src="{% static "panometer/js/teletherm-cityDynamics.js" %}"></script>
 
 {% endblock %}

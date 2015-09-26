@@ -1,0 +1,47 @@
+{% extends "panometer/base.html" %}
+{% load staticfiles %}
+{% block headercss %}
+<link href="{% static "panometer/css/site.css" %}" rel="stylesheet">
+<link href="{% static "panometer/css/teletherm.css" %}" rel="stylesheet">
+<!-- <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" /> -->
+<!-- <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css' rel='stylesheet' /> -->
+<link href="{% static "panometer/css/bootstrap.min.css" %}" rel="stylesheet">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <br>
+  <div class="row">
+    <h4 id="navtree" style="display: inline-block"><a href="/index.html">Panometer</a> > <a href="/instruments/{{ meter }}/">{{meter}}</a> > {{ frame }}</h4>
+  </div> <!-- row -->
+  <br>
+  <div class="row">
+    <div class="col-xs-12 col-sm-12 col-sm-offset-0">
+      <p>We'll pull up instructions soon, we promise!</p>
+    </div> <!-- col -->          
+  </div> <!-- row -->
+  <br>
+  <br>
+</div> <!-- container -->
+{% endblock %}
+
+
+{% block bottomjs %}
+
+<script src="{% static "panometer/js/jquery-1.11.0.min.js" %}"></script>
+<!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>-->
+<script src="{% static "panometer/js/bootstrap.min.js" %}"></script>
+<script src="{% static "panometer/js/d3.js" %}"></script>
+<script src="{% static "panometer/js/fisheye.js" %}"></script>    
+<script src="{% static "panometer/js/science.v1.js" %}"></script>
+<script src="{% static "panometer/js/queue.min.js" %}"></script>
+<script src="{% static "panometer/js/topojson.v1.min.js" %}"></script>
+<script src="{% static "panometer/js/urllib.js" %}"></script>
+<script src="{% static "panometer/js/hedotools.init.js" %}"></script>
+<script src="{% static "panometer/js/hedotools.map.js" %}"></script>
+<script src="{% static "panometer/js/stations.js" %}"></script>
+<script src="{% static "panometer/js/teletherm.js" %}"></script>
+
+{% endblock %}
