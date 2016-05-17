@@ -28,7 +28,7 @@ function loadCsv() {
         stateFood = tmp.map(function(d) { return d.split(",").slice(1,1000); });
         if (!--csvLoadsRemaining) initializePlot();
     });
-    d3.text("/static/panometer/data/lexicocalorimeter/caloric_balance06292015.csv", function (text) {
+    d3.text("/static/panometer/data/lexicocalorimeter/flux-wstates.txt", function (text) {
         var tmp = text.split("\n").slice(1,50);
 	stateFlux = tmp.map(function(d) { return [d.split(",")[0],parseFloat(d.split(",")[1])]; });
         if (!--csvLoadsRemaining) initializePlot();
