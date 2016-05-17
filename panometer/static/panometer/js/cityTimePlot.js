@@ -70,6 +70,7 @@ var smooth_timeseries_gaussian = function(windows,t,season) {
 
     return {"smoothed_timeseries": smoothed_timeseries, "teletherm_dates": teletherm_dates, "teletherm_extents": teletherm_extents,};
 }
+
 var cityTimePlot = function(error,results) {
     // function(i) {
     // console.log("plotting individual city data for city number:");
@@ -299,8 +300,29 @@ var cityTimePlot = function(error,results) {
     console.log("will now plot the city data");
 
     if (station_dynamics) {
-        cityPlot(all_tmax_avg[0],all_summer_dates[0],all_summer_extents[0],all_tmax_avg_smoothed[0],all_tmin_avg[0],all_winter_dates[0],all_winter_extents[0],all_tmin_avg_smoothed[0]);
+        cityNYTPlot(all_tmax_avg[0],all_summer_dates[0],all_summer_extents[0],all_tmax_avg_smoothed[0],all_tmin_avg[0],all_winter_dates[0],all_winter_extents[0],all_tmin_avg_smoothed[0],"#station2");
+        cityNYTCirclePlot(all_tmax_avg[0],all_summer_dates[0],all_summer_extents[0],all_tmax_avg_smoothed[0],all_tmin_avg[0],all_winter_dates[0],all_winter_extents[0],all_tmin_avg_smoothed[0],"#station1");
     }
+
+    cityTimePlotPlot(min_years,flattened_summer_extents,flattened_winter_extents,local_window);
+
+
+
+    // updatewindow = function(t) {
+    //     console.log("updating the top window slider");
+    //     console.log(yearIndex);
+    //     // curr_window.transition().duration(t).attr("x",x(full_year_range[yearIndex]));
+    //     curr_window.transition().attr("x",x(full_year_range[yearIndex]))
+    //         .attr("width",x(parseFloat(currentWindow)+full_year_range[0])-x(full_year_range[0]));
+    // }
+    
+    // move the screen down to this
+    // document.getElementById('station1').focus();
+    // $("html, body").animate({ scrollTop: $("#station1").offset().top }, 900);
+    // $.scrollTo($('#station1').offset().top);
+}
+
+var cityTimePlotPlot = function(min_years,flattened_summer_extents,flattened_winter_extents,local_window) {
 
     var figure;
     var margin;
@@ -317,8 +339,9 @@ var cityTimePlot = function(error,results) {
     var line_min;
     var area_max;
     var area_min;
+
     
-    plot_city_main = function() {
+    var plot = function() {
         figure = d3.select("#timeseries1");
         
         margin = {top: 2, right: 50, bottom: 40, left: 50};
@@ -704,7 +727,7 @@ var cityTimePlot = function(error,results) {
     } // end plot() function
 
     // call it
-    plot_city_main();
+    plot();
 
     replot_city_main = function() {
         // broken now, with multiple periods combing back
@@ -790,18 +813,4 @@ var cityTimePlot = function(error,results) {
             })
             .text("Winter Teletherm: "+month_names[month-1-6].slice(0,3)+" "+day+" (day "+winter_teletherm_date+"), "+(winter_teletherm_extent[1]-winter_teletherm_extent[0])+" day extent");        
     }
-
-    // updatewindow = function(t) {
-    //     console.log("updating the top window slider");
-    //     console.log(yearIndex);
-    //     // curr_window.transition().duration(t).attr("x",x(full_year_range[yearIndex]));
-    //     curr_window.transition().attr("x",x(full_year_range[yearIndex]))
-    //         .attr("width",x(parseFloat(currentWindow)+full_year_range[0])-x(full_year_range[0]));
-    // }
-    
-    // move the screen down to this
-    // document.getElementById('station1').focus();
-    // $("html, body").animate({ scrollTop: $("#station1").offset().top }, 900);
-    // $.scrollTo($('#station1').offset().top);
 }
-
