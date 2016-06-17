@@ -1,5 +1,6 @@
 // make the plot
 function plotBarChart(figure,data,geodata) {
+    // console.log(data);
     /* plot the bar chart
 
        -take a d3 selection, and draw the bar chart SVG on it
@@ -239,8 +240,10 @@ function plotBarChart(figure,data,geodata) {
     function state_hover(d,i) { 
 	// console.log("from the bar chart:");
 	// console.log(sortedStates[i]);
+
+	// console.log(d3.extent(data));
 	
-	axes.selectAll("rect.staterect")
+	d3.selectAll("rect.staterect")
     	    .attr("fill",function(d,i) { return qcolor(d[3]); });
 
 	d3.selectAll("path.state")

@@ -1,4 +1,6 @@
 function drawMap(figure,data,sorted_json,dashboard,center,scale) {
+    // console.log(data);
+    data = data.map(function(d) { return d-d3.mean(data); });
     /* 
        plot the state map!
 
@@ -144,11 +146,10 @@ function drawMap(figure,data,sorted_json,dashboard,center,scale) {
     function state_hover(d,i) {
 	// console.log("from the map:");
 	// console.log(i);
-
-	if (dashboard) {
+	// console.log(d3.extent(data));
 
 	    d3.selectAll("rect.staterect")
-    		.attr("fill",function(d,i) { return qcolor(d[3]); });
+    	    .attr("fill",function(d,i) { return qcolor(d[3]); });
 
 	    canvas.selectAll("path.state")
 		.attr("fill",function(d,i) { return qcolor(data[i]); });
@@ -226,8 +227,6 @@ function drawMap(figure,data,sorted_json,dashboard,center,scale) {
 	    // my_activity_shifter.setWidth(modalwidth);
 	    my_activity_shifter.setText(sumtextarray);
 	    my_activity_shifter.replot();
-
-	}
     }
 
     function state_unhover(d,i) { 

@@ -212,39 +212,6 @@ hedotools.shifter = function()
 	ylabel_text = _;
 	return that;
     }
-
-    var _sortedMag = function(_) {
-        var that = this;
-	if (!arguments.length) return sortedMag;
-	sortedMag = _;
-	return that;
-    }
-    var _sortedType = function(_) {
-        var that = this;
-	if (!arguments.length) return sortedType;
-	sortedType = _;
-	return that;
-    }
-    var _sortedWords = function(_) {
-        var that = this;
-	if (!arguments.length) return sortedWords;
-	sortedWords = _;
-        sortedWordsRaw = _;
-	return that;
-    }
-    var _sortedWordsEn = function(_) {
-        var that = this;
-	if (!arguments.length) return sortedWordsEn;
-	sortedWordsEn = _;
-        sortedWordsRaw = _;
-	return that;
-    }
-    var _sumTypes = function(_) {
-        var that = this;
-	if (!arguments.length) return sumTypes;
-	sumTypes = _;
-	return that;
-    }
     var _refH = function(_) {
         var that = this;
 	if (!arguments.length) return refH;
@@ -683,6 +650,7 @@ hedotools.shifter = function()
     }
     
     var shifter = function() {
+        // console.log("running the shifter");
         var that = this;
 	/* shift two frequency vectors
 	   -assume they've been zero-ed for stop words
@@ -778,7 +746,7 @@ hedotools.shifter = function()
 		}
 	    }
 	    else {
-		sortedWords[i] = tmpword;		
+		sortedWords[i] = tmpword;	
 	    }
 	}
 
@@ -820,6 +788,10 @@ hedotools.shifter = function()
 	//     refH: refH,
 	//     compH: compH,
 	// };
+
+        sortedWordsRaw = sortedWords;
+        sortedWordsRawEn = sortedWordsEn;
+	concatter();
 
 	// allow chaining here too
 	return that;
@@ -1173,10 +1145,6 @@ hedotools.shifter = function()
 	// take the longest of the top five words
 	// console.log("appending to sorted words");
 	// console.log(sortedWords);
-
-        sortedWordsRaw = sortedWords;
-        if (translate) { sortedWordsEnRaw = sortedWordsEn; }
-	concatter();
 
 	maxWidth = d3.max(sortedWords.slice(0,7).map(function(d) { return d.width(wordfontsize + "px Latex default"); }));
 
@@ -2585,10 +2553,6 @@ hedotools.shifter = function()
 	    // console.log(comparisonText);
 	}
 
-        sortedWords = sortedWordsRaw;
-        if (translate) { sortedWords = sortedWordsRaw; }
-	concatter();
-
 	// could set a cap to make sure no 0"s
 	maxWidth = d3.max(sortedWords.slice(0,5).map(function(d) { return d.width(wordfontsize + "px Latex default"); }));
 
@@ -2701,6 +2665,9 @@ hedotools.shifter = function()
 
 	var newbars = axes.selectAll("rect.shiftrect").data(sortedMag);
 	var newwords = axes.selectAll("text.shifttext").data(sortedMag);
+        // console.log(sortedWords);
+        // console.log(sortedMag);
+        // console.log(compF);
 	
 	// if we haven't dont a subselection, apply with a transition
 	if (shiftseldecoder().current === "none" || shiftseldecoder().current.length === 0) {
@@ -3007,10 +2974,6 @@ hedotools.shifter = function()
 		    _words: _words,
 		    _words_en: _words_en,
 		    // boatload more accessor functions
-		    _sortedMag: _sortedMag,
-		    _sortedType: _sortedType,
-		    _sortedWords: _sortedWords,
-		    _sumTypes: _sumTypes,
 		    _refH: _refH,
 		    _compH: _compH,
 		    _xlabel_text: _xlabel_text,
