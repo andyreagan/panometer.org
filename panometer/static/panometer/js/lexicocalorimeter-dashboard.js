@@ -22,6 +22,9 @@ function stateLookup(name) {
     return ID;
 }
 
+var my_food_shifter;
+var my_activity_shifter;
+
 function initializePlot() {
     // line up the state flux with the map
     //
@@ -51,6 +54,7 @@ function initializePlot() {
 
     i = stateLookup(state_decoder().cached);
     shiftComp = i;
+    // console.log(i);
     shiftCompName = sorted_state_json[i].properties.name;
     
     d3.selectAll("."+shiftCompName[0]+shiftCompName.split(" ")[shiftCompName.split(" ").length-1]).attr("fill","red");
@@ -58,20 +62,23 @@ function initializePlot() {
     if (shiftCompName === "District of Columbia") {
 	shiftCompName = "DC";
     }
-    console.log(shiftCompName);
+    // console.log(shiftCompName);
 
-    hedotools.shifter._words(foodNames);
-    hedotools.shifter._lens(foodCals);
-    hedotools.shifter._refF(allUSfood);
+    my_food_shifter = hedotools.shifter();
+    my_food_shifter._my_shift_id("foodshift");
+    // my_food_shifter.setFontSizes([10,10,16,10,8,8,13]);
+    my_food_shifter._words(foodNames);
+    my_food_shifter._lens(foodCals);
+    my_food_shifter._refF(allUSfood);
     // computeFoodRanks()    
     foodRanks = [38, 10, 36, 21, 1, 24, 16, 3, 8, 14, 22, 15, 41, 42, 39, 43, 35, 0, 6, 11, 34, 5, 33, 9, 44, 32, 7, 2, 30, 31, 12, 29, 46, 45, 40, 13, 27, 18, 26, 48, 20, 37, 25, 28, 17, 19, 47, 4, 23];
-    hedotools.shifter.setfigure(d3.select("#shift01"));
-    hedotools.shifter._split_top_strings(false);
-    hedotools.shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
-    hedotools.shifter.setTextBold(1);
-    hedotools.shifter.shifter();
-    var refH = hedotools.shifter._refH();
-    var compH = hedotools.shifter._compH();
+    my_food_shifter.setfigure(d3.select("#shift01"));
+    my_food_shifter._split_top_strings(false);
+    my_food_shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
+    my_food_shifter.setTextBold(1);
+    my_food_shifter.shifter();
+    var refH = my_food_shifter._refH();
+    var compH = my_food_shifter._compH();
     if (compH >= refH) {
 	var happysad = " consumes more calories on average:";
     }
@@ -94,23 +101,26 @@ function initializePlot() {
 	return shiftCompName+" calories = " + (compH.toFixed(2)) + " (Rank " + (foodRanks[shiftComp]+1) + " out of 49)";
     }();
 	
-    hedotools.shifter.setText(sumtextarray);
+    my_food_shifter.setText(sumtextarray);
     // console.log(sumtextarray);
-    hedotools.shifter._xlabel_text("Per food phrase caloric shift");
-    hedotools.shifter._ylabel_text("Food rank");
-    hedotools.shifter.show_x_axis(true);
-    hedotools.shifter.plot();
+    my_food_shifter._xlabel_text("Per food phrase caloric shift");
+    my_food_shifter._ylabel_text("Food rank");
+    my_food_shifter.show_x_axis(true);
+    my_food_shifter.plot();
 
-    hedotools.shifterTwo._words(actNames);
-    hedotools.shifterTwo._lens(actCals);
-    hedotools.shifterTwo._refF(allUSact);
+    my_activity_shifter = hedotools.shifter();
+    my_activity_shifter._my_shift_id("activityshift");
+    // my_activity_shifter.setFontSizes([16,10,16,10,8,8,13]);
+    my_activity_shifter._words(actNames);
+    my_activity_shifter._lens(actCals);
+    my_activity_shifter._refF(allUSact);
     // computeActivityRanks();
     activityRanks = [43, 17, 45, 9, 1, 32, 46, 28, 25, 42, 18, 30, 26, 8, 21, 36, 47, 13, 44, 23, 41, 7, 48, 27, 4, 11, 24, 14, 35, 16, 10, 38, 15, 31, 19, 5, 33, 22, 39, 6, 37, 34, 3, 2, 29, 12, 40, 20, 0];
-    hedotools.shifterTwo._split_top_strings(false);
-    hedotools.shifterTwo._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));
-    hedotools.shifterTwo.shifter();
-    var refH = hedotools.shifterTwo._refH();
-    var compH = hedotools.shifterTwo._compH();
+    my_activity_shifter._split_top_strings(false);
+    my_activity_shifter._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));
+    my_activity_shifter.shifter();
+    var refH = my_activity_shifter._refH();
+    var compH = my_activity_shifter._compH();
     if (compH >= refH) {
 	var happysad = " expends more calories on average:";
     }
@@ -132,22 +142,22 @@ function initializePlot() {
     sumtextarray[2] = function() {
 	return shiftCompName+" caloric expenditure = " + (compH.toFixed(2)) + " (Rank " + (activityRanks[shiftComp]+1) + " out of 49)";
     }();
-    hedotools.shifterTwo.setTextBold(1);
-    // hedotools.shifterTwo.setWidth(modalwidth);
-    hedotools.shifterTwo.setText(sumtextarray);
-    hedotools.shifterTwo._xlabel_text("Per activity phrase caloric expenditure shift");
-    hedotools.shifterTwo._ylabel_text("Activity rank");
-    hedotools.shifterTwo.show_x_axis(true);    
-    hedotools.shifterTwo.setfigure(d3.select("#shift02"));
-    hedotools.shifterTwo.plot();
+    my_activity_shifter.setTextBold(1);
+    // my_activity_shifter.setWidth(modalwidth);
+    my_activity_shifter.setText(sumtextarray);
+    my_activity_shifter._xlabel_text("Per activity phrase caloric expenditure shift");
+    my_activity_shifter._ylabel_text("Activity rank");
+    my_activity_shifter.show_x_axis(true);    
+    my_activity_shifter.setfigure(d3.select("#shift02"));
+    my_activity_shifter.plot();
 };
 
 function computeFoodRanks() {
     foodScores = Array(49);
     for (var shiftComp=0; shiftComp<49; shiftComp++) {
-	hedotools.shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
-	hedotools.shifter.shifter();
-	var compH = hedotools.shifter._compH();
+	my_food_shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
+	my_food_shifter.shifter();
+	var compH = my_food_shifter._compH();
 	foodScores[shiftComp] = compH;
     }
     // do the sorting
@@ -165,9 +175,9 @@ function computeFoodRanks() {
 function computeActivityRanks() {
     activityScores = Array(49);
     for (var shiftComp=0; shiftComp<49; shiftComp++) {
-	hedotools.shifterTwo._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));	
-	hedotools.shifterTwo.shifter();
-	var compH = hedotools.shifterTwo._compH();
+	my_activity_shifter._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));	
+	my_activity_shifter.shifter();
+	var compH = my_activity_shifter._compH();
 	activityScores[shiftComp] = compH;
     }
 

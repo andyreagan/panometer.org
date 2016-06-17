@@ -15,7 +15,7 @@ function drawMap(figure,data,sorted_json,dashboard,center,scale) {
     // mean 0 the data
     // data = data.map(function(d) { return d-d3.mean(data); });
 
-    console.log(data);
+    // console.log(data);
 
     // //Define map projection
     // var projection = d3.geo.albersUsa()
@@ -167,11 +167,11 @@ function drawMap(figure,data,sorted_json,dashboard,center,scale) {
 	    }
 	    // console.log(shiftCompName);
 	    
-	    hedotools.shifter._refF(allUSfood);
-	    hedotools.shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
-	    hedotools.shifter.shifter();
-	    var refH = hedotools.shifter._refH();
-	    var compH = hedotools.shifter._compH();
+	    my_food_shifter._refF(allUSfood);
+	    my_food_shifter._compF(stateFood.map(function(d) { return parseFloat(d[shiftComp]); }));
+	    my_food_shifter.shifter();
+	    var refH = my_food_shifter._refH();
+	    var compH = my_food_shifter._compH();
 	    if (compH >= refH) {
 		var happysad = " consumes more calories on average:";
 	    }
@@ -194,14 +194,14 @@ function drawMap(figure,data,sorted_json,dashboard,center,scale) {
 		return shiftCompName+" calories = " + (compH.toFixed(2)) + " (Rank " + (foodRanks[shiftComp]+1) + " out of 49)";
 	    }();
 	    
-	    hedotools.shifter.setText(sumtextarray);
-	    hedotools.shifter.replot();
+	    my_food_shifter.setText(sumtextarray);
+	    my_food_shifter.replot();
 
-	    hedotools.shifterTwo._refF(allUSact);
-	    hedotools.shifterTwo._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));
-	    hedotools.shifterTwo.shifter();
-	    var refH = hedotools.shifterTwo._refH();
-	    var compH = hedotools.shifterTwo._compH();
+	    my_activity_shifter._refF(allUSact);
+	    my_activity_shifter._compF(stateAct.map(function(d) { return parseFloat(d[shiftComp]); }));
+	    my_activity_shifter.shifter();
+	    var refH = my_activity_shifter._refH();
+	    var compH = my_activity_shifter._compH();
 	    if (compH >= refH) {
 		var happysad = " expends more calories on average:";
 	    }
@@ -223,9 +223,9 @@ function drawMap(figure,data,sorted_json,dashboard,center,scale) {
 	    sumtextarray[2] = function() {
 		return shiftCompName+" caloric expenditure = " + (compH.toFixed(2)) + " (Rank " + (activityRanks[shiftComp]+1) + " out of 49)";
 	    }();
-	    // hedotools.shifterTwo.setWidth(modalwidth);
-	    hedotools.shifterTwo.setText(sumtextarray);
-	    hedotools.shifterTwo.replot();
+	    // my_activity_shifter.setWidth(modalwidth);
+	    my_activity_shifter.setText(sumtextarray);
+	    my_activity_shifter.replot();
 
 	}
     }
