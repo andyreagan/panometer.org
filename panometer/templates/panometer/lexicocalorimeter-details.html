@@ -1,0 +1,26 @@
+{% extends "panometer/base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-offset-3 col-md-6" style="padding-top:0px;">
+      <h2 style="text-align: center; padding-bottom: 10px;">About the Lexicocalorimeter</h2>
+      <div class="jumbotron">The foundational research behind the Lexicocalorimeter has been published in PLoS ONE <a href="http://dx.doi.org/10.1371/journal.pone.0168893">"The Lexicocalorimeter: Gauging public health through caloric input and output on social media" <i class="fa fa-external-link"></i></a>.</div>
+      In addition to the interactive dashboards and maps availabe on this site, the online appendices for the paper with the data sets used in the study are available at <a href="http://www.uvm.edu/storylab/share/papers/alajajian2015a/" targer="_blank">http://www.uvm.edu/storylab/share/papers/alajajian2015a/index.html</a>, and more details on the Panometer are right over on the <a href="http://panometer.org/about.html">About page</a>.
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+{% block bottomjs %}
+
+    <script src="{% static "panometer/js/jquery-1.11.0.min.js" %}"></script>
+    <script src="{% static "panometer/js/bootstrap.min.js" %}"></script>
+    
+{% endblock %}
+
+
