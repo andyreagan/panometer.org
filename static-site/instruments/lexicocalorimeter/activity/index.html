@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=9"/>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    
+    <title>Panometer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="application-name" content="Panometer"/>
+    <meta name="description" content="Panometer.org is an instrument that measures large populations in real time."/>
+    <meta name="developer" content="Andy Reagan, UVM"/>
+    
+        
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="Panometer">
+    <meta name="twitter:title" content="The Panometer">
+    <meta name="twitter:description" content="Panometer.org is an instrument that measures large populations in real time.">
+    
+    
+    
+    
+    
+    
+<link href="/static/panometer/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+<link href="/static/panometer/css/site.css" rel="stylesheet">
+
+
+    
+    
+    
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+    
+    
+    <!-- THIS ONE FROM HEDONOMETER -->
+    <!-- <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-539b215a08fde1a0"></script> -->
+
+    <!-- THIS IS THE NEW ONE -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-55b141ed39eada83" async="async"></script>
+    
+    <!-- <script type="text/javascript"> -->
+    <!--   var addthis_config = addthis_config || {}; -->
+    <!--   addthis_config.data_track_addressbar = false; -->
+    <!--   addthis_config.data_track_clickback = false;  -->
+
+    <!--   var addthis_share = addthis_share || {} -->
+    <!--   addthis_share = { -->
+    <!--     // title: "title", // doesn't do anything, documentation patchy -->
+    <!--     passthrough : { -->
+    <!--       twitter: { -->
+    <!--         via: "panometer", -->
+    <!--         text: "panometer:" -->
+    <!--       } -->
+    <!--     } -->
+    <!--   } -->
+    <!-- </script> -->    
+    
+
+  </head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/index.html">Panometer</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Instruments <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="http://hedonometer.org" target="_blank"><strong>Hedonometer</strong></a></li>
+                <li><a href="http://hedonometer.org" target="_blank" class="submenu">Twitter Timeseries  <i class="fa fa-external-link"></i></a></li>		
+                <li role="separator" class="divider"></li>
+                <!-- <li class="dropdown-header">New</li> -->
+                <li><a href="/instruments/lexicocalorimeter/"><strong>Lexicocalorimeter</strong></a></li>
+		<li><a href="/instruments/lexicocalorimeter/" class="submenu">Dashboard</a></li>
+		<li><a href="/instruments/lexicocalorimeter/activity/" class="submenu">Activity Search</a></li>
+		<li><a href="/instruments/lexicocalorimeter/food/" class="submenu">Food Search</a></li>
+                <li><a href="/instruments/lexicocalorimeter/details/" class="submenu">Details</a></li>
+                <li role="separator" class="divider"></li>
+                <!-- <li class="dropdown-header">New</li> -->
+                <li><a href="/instruments/teletherms/"><strong>Teletherms</strong></a></li>
+		<li><a href="/instruments/teletherms/" class="submenu">Dashboard</a></li>                
+              </ul>
+            </li>
+            <li><a href="/about.html">About</a></li>
+          </ul>
+          <!-- <ul class="nav navbar-nav navbar-right"> -->
+          <!--   <li><a href="../navbar/">Default</a></li> -->
+          <!--   <li><a href="../navbar-static-top/">Static top</a></li> -->
+          <!--   <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li> -->
+          <!-- </ul> -->
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>        
+
+    
+
+
+
+    
+<div class="container">
+
+  <!-- BEGIN demo slider -->
+  <!-- <br> -->
+  <!-- <div class="container"> -->
+  <!--   <br> -->
+  <!--   <div id="left"> -->
+  <!--     <h1 class="top">inner heading > </h1> -->
+  <!--   </div> -->
+  <!--   <div id="right">  -->
+  <!--     <div id="carousel">       -->
+  <!--     <text>view 1</text> -->
+  <!--     <text>view 2</text> -->
+  <!--     <text>view 3</text> -->
+  <!--     <text>view 4</text> -->
+  <!--     <text>view 5</text> -->
+  <!--     </div> <\!-- carousel -\-> -->
+  <!--   </div> <\!-- right -\-> -->
+  <!-- </div> <\!-- container -\-> -->
+  <!-- END demo slider -->
+  
+  <br>  
+  <div class="row">
+    <h4 id="navtree"><a href="/index.html">Panometer</a> > <a href="/instruments/lexicocalorimeter/">lexicocalorimeter</a> > activity</h4>
+  </div> <!-- row -->
+  
+  <div class="row">
+    <div class="col-xs-8 col-xs-offset-0">
+      <br>
+      <br>
+      <br>      
+    <div class="demo">
+      <input id="wordsearch" class="typeahead" type="text" style="margin-left: 5px;" placeholder="skiing">
+      <button class="btn btn-default" type="submit" id="showallmatching">Map all matching</button>
+      <br>
+    </div> <!-- /.demo -->      
+      <div id="map01"></div>
+    </div> <!-- /.col -->
+    <div class="col-xs-4 col-xs-offset-0">
+      <div id="bars01"></div>
+    </div> <!-- /.col -->
+  </div> <!-- /.row -->      
+
+  
+</div><!-- /.container -->
+
+
+     
+    
+
+    
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12 col-md-6 col-md-offset-3">
+      <br>
+      <br>
+      <br>
+      <p class="text-center">Foundational paper: <a href="https://arxiv.org/abs/1507.05098">"The Lexicocalorimeter: Gauging public health through caloric input and output on social media" (arXiv)</a>.</p>
+    </div> <!-- col -->
+  </div> <!-- row -->
+</div><!-- /.container -->
+
+
+
+    
+
+    <!-- use these for all of the files individually (tad faster developing) -->
+    <script src="/static/panometer/js/jquery-1.11.0.min.js" charset="utf-8"></script>
+    <script src="/static/panometer/js/bootstrap.min.js" charset="utf-8"></script>
+
+    <script src="/static/panometer/js/typeahead.bundle.js" charset="utf-8"></script>    
+    
+    <script src="/static/panometer/js/d3.andy.js" charset="utf-8"></script>    
+    <script src="/static/panometer/js/urllib.js" charset="utf-8"></script>
+    <script src="/static/panometer/js/topojson.js" charset="utf-8"></script>
+    <script src="/static/panometer/js/plotBarChartSearch.js" charset="utf-8"></script>
+    <script src="/static/panometer/js/drawMap.js" charset="utf-8"></script>
+
+    <script src="/static/panometer/js/lexicocalorimeter-load-files.js" charset="utf-8"></script>    
+    <script src="/static/panometer/js/lexicocalorimeter-activity.js" charset="utf-8"></script>
+    
+
+
+        
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-45564756-6', 'auto');
+      ga('send', 'pageview');
+    </script>
+        
+  </body>
+</html>
+
+

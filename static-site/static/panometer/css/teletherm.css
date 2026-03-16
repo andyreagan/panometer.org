@@ -1,0 +1,49 @@
+/* #map { height: 380px; } */
+/* <style> */
+/* /\*  give the map some height *\/ */
+/* #map { */
+
+/* } */
+
+.state {
+    fill: #f0efe7;
+    stroke: black;
+    stroke-width: 1.5px;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+
+.hoverinfogroup {
+    line-height: 1;
+    font-weight: bold;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+}
+
+#map {
+    position: relative;
+}
+
+g.citygroup {
+    cursor: pointer;
+}
+
+div.windowselection {
+    display: inline-block;
+}
+
+div.variableselection {
+    display: inline-block;
+    padding-left: 40px;
+}
+
+div.yearselection {
+    display: inline-block;
+    padding-left: 40px
+}
+
+div#timeline {
+    padding-top: 10px;
+}

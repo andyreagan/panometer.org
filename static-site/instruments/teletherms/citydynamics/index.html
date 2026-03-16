@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=9"/>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    
+    <title>Panometer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="application-name" content="Panometer"/>
+    <meta name="description" content="Panometer.org is an instrument that measures large populations in real time."/>
+    <meta name="developer" content="Andy Reagan, UVM"/>
+    
+        
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="Panometer">
+    <meta name="twitter:title" content="The Panometer">
+    <meta name="twitter:description" content="Panometer.org is an instrument that measures large populations in real time.">
+    
+    
+    
+    
+    
+    
+<link href="/static/panometer/css/site.css" rel="stylesheet">
+<link href="/static/panometer/css/teletherm.css" rel="stylesheet">
+<!-- <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" /> -->
+<!-- <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css' rel='stylesheet' /> -->
+<link href="/static/panometer/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
+
+    
+    
+    
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+    
+    
+    <!-- THIS ONE FROM HEDONOMETER -->
+    <!-- <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-539b215a08fde1a0"></script> -->
+
+    <!-- THIS IS THE NEW ONE -->
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-55b141ed39eada83" async="async"></script>
+    
+    <!-- <script type="text/javascript"> -->
+    <!--   var addthis_config = addthis_config || {}; -->
+    <!--   addthis_config.data_track_addressbar = false; -->
+    <!--   addthis_config.data_track_clickback = false;  -->
+
+    <!--   var addthis_share = addthis_share || {} -->
+    <!--   addthis_share = { -->
+    <!--     // title: "title", // doesn't do anything, documentation patchy -->
+    <!--     passthrough : { -->
+    <!--       twitter: { -->
+    <!--         via: "panometer", -->
+    <!--         text: "panometer:" -->
+    <!--       } -->
+    <!--     } -->
+    <!--   } -->
+    <!-- </script> -->    
+    
+
+  </head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/index.html">Panometer</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Instruments <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="http://hedonometer.org" target="_blank"><strong>Hedonometer</strong></a></li>
+                <li><a href="http://hedonometer.org" target="_blank" class="submenu">Twitter Timeseries  <i class="fa fa-external-link"></i></a></li>		
+                <li role="separator" class="divider"></li>
+                <!-- <li class="dropdown-header">New</li> -->
+                <li><a href="/instruments/lexicocalorimeter/"><strong>Lexicocalorimeter</strong></a></li>
+		<li><a href="/instruments/lexicocalorimeter/" class="submenu">Dashboard</a></li>
+		<li><a href="/instruments/lexicocalorimeter/activity/" class="submenu">Activity Search</a></li>
+		<li><a href="/instruments/lexicocalorimeter/food/" class="submenu">Food Search</a></li>
+                <li><a href="/instruments/lexicocalorimeter/details/" class="submenu">Details</a></li>
+                <li role="separator" class="divider"></li>
+                <!-- <li class="dropdown-header">New</li> -->
+                <li><a href="/instruments/teletherms/"><strong>Teletherms</strong></a></li>
+		<li><a href="/instruments/teletherms/" class="submenu">Dashboard</a></li>                
+              </ul>
+            </li>
+            <li><a href="/about.html">About</a></li>
+          </ul>
+          <!-- <ul class="nav navbar-nav navbar-right"> -->
+          <!--   <li><a href="../navbar/">Default</a></li> -->
+          <!--   <li><a href="../navbar-static-top/">Static top</a></li> -->
+          <!--   <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li> -->
+          <!-- </ul> -->
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>        
+
+    
+
+
+
+    
+<div class="container">
+  <br>
+  <div class="row">
+    <h4 id="navtree" style="display: inline-block"><a href="/index.html">Panometer</a> > <a href="/instruments/teletherms/">teletherms</a> > citydynamics</h4>
+    <p class="pull-right" style="display: inline-block"><a href="/instruments/teletherms/instructions/">click for instructions</a></p>
+  </div> <!-- row -->
+  
+  <div class="row">
+    <div class="col-xs-12 col-sm-12 col-sm-offset-0">
+      <h4>[ <i class="fa fa-exclamation-triangle"></i> page in development ]</h4>
+      <div class="windowselection">
+	<p>Choose averaging window:</p>
+	<!-- horizontal -->
+	<div id="yearbuttons">
+	  <label class="radio-inline">
+	    <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="10"> 10 Years
+	  </label>
+	  <label class="radio-inline">
+	    <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="25"> 25 Years
+	  </label>
+	  <label class="radio-inline">
+	    <input type="radio" name="inlineRadioOptions" id="inlineRadio4" value="50"> 50 Years
+	  </label>
+	</div>
+      </div>
+
+      <!-- <div class="variableselection"> -->
+        
+      <!--   <p>Select the variable:</p> -->
+
+      <!--   <div class="btn-group" id="variabledrop"> -->
+      <!--     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" id="variabledropvis"> -->
+      <!--       Max Temp <span class="caret"></span> -->
+      <!--     </button> -->
+      <!--     <ul class="dropdown-menu" role="menu"> -->
+      <!--       <li><a>Summer Teletherm Day & Extent</a></li> -->
+      <!--       <li><a>Winter Teletherm Day & Extent</a></li> -->
+      <!--       <li><a>Summer Teletherm Temperature</a></li> -->
+      <!--       <li><a>Winter Teletherm Temperature</a></li> -->
+      <!--     </ul> -->
+      <!--   </div> -->
+
+      <!-- </div> -->
+
+      <div class="yearselection">
+
+	<p>Select the time frame:</p>
+	<!-- Single button -->
+	<div class="btn-group" id="yeardrop">
+	  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" id="yeardropvis">
+	    1900 <span class="caret"></span>
+	  </button>
+	  <ul class="dropdown-menu" role="menu" id="yeardroplist">
+	    <li><a>1900</a></li>
+	    <li><a>1901</a></li>
+	    <li><a>...</a></li>
+	  </ul>
+	</div>
+
+	<button class="btn btn-default" type="submit" id="playButton"><i class="fa fa-play"></i></button>
+
+      </div> <!-- row -->
+    </div>
+  </div> <!-- row -->
+  <div class="row">
+    <div id="timeline"></div>
+  </div> <!-- row -->
+  <div class="row">
+    <div id="timeseries1"></div>
+  </div> <!-- row -->
+  <div class="row">
+    <div class="col-xs-0 col-sm-12 col-sm-offset-0">
+      <h3 id="stationname" style="margin-right: 0; margin-top: 0"></h3>
+      <div id="station1"></div>
+      <div id="station2"></div>
+    </div>
+  </div> <!-- row -->
+  <div class="row">
+    <div class="col-xs-0 col-sm-12 col-sm-offset-0">
+      <h3>Online appendices: <a href="http://compstorylab.org/share/papers/dodds2015c/index.html" target="_blank">[link]</a>.</h3>
+      <h3>ArXiv paper: <a href="http://arxiv.org/abs/1508.05938" target="_blank">[link]</a>.</h3>
+    </div> <!-- col -->          
+  </div> <!-- row -->
+  <br>
+  <br>
+</div> <!-- container -->
+
+
+     
+    
+
+    
+
+    <div id="footer">
+    <div class="container">
+
+	<p class="logo">
+
+	  <a href="http://uvm.edu"  target="_blank"><img alt="University of Vermont" src="/static/panometer/graphics/uvmlogosolid3425k.png" style="padding-right:15px;height:30px;"/></a>
+	  <a href="http://www.uvm.edu/~cmplxsys/"  target="_blank"><img alt="University of Vermont Complex Systems Center" src="/static/panometer/graphics/CSCnew.png" style="padding-right:15px;height:30px;border:1;"/></a>	
+	  <a href="http://www.uvm.edu/~vacc/"  target="_blank"><img alt="University of Vermont Advanced Computing Core" src="/static/panometer/graphics/vacc.jpg" style="padding-right:15px;height:30px;border:1;"/></a>
+	  <a href="http://onehappybird.com/" target="_blank"><img alt="computational story lab" src="/static/panometer/graphics/csl.png" style="height:30px;" border="3px"/></a>
+	</p>
+	<p style="font-size:10px; color:lightgrey;">Copyright &copy; University of Vermont Complex Systems Center. All Rights Reserved.<br></p>
+      </div> <!-- /footer -->
+    </div>
+
+    
+
+    
+
+<script src="/static/panometer/js/jquery-1.11.0.min.js"></script>
+<!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>-->
+<script src="/static/panometer/js/bootstrap.min.js"></script>
+<script src="/static/panometer/js/d3.js"></script>
+<script src="/static/panometer/js/fisheye.js"></script>    
+<script src="/static/panometer/js/science.v1.js"></script>
+<script src="/static/panometer/js/queue.min.js"></script>
+<script src="/static/panometer/js/topojson.v1.min.js"></script>
+<script src="/static/panometer/js/urllib.js"></script>
+<script src="/static/panometer/js/hedotools.init.js"></script>
+<script src="/static/panometer/js/hedotools.map.js"></script>
+<script src="/static/panometer/js/stations.js"></script>
+<script src="/static/panometer/js/cityTimePlot.js"></script>
+<script src="/static/panometer/js/cityAveragePlot.js"></script>
+<script src="/static/panometer/js/teletherm-cityDynamics.js"></script>
+
+
+
+        
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-45564756-6', 'auto');
+      ga('send', 'pageview');
+    </script>
+        
+  </body>
+</html>
+
+
